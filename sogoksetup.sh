@@ -408,7 +408,7 @@ latest_version="$(curl -s https://api.github.com/repos/XTLS/Xray-core/releases |
 bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -u www-data --version $latest_version
 wget -O /etc/xray/config.json "${REPO}sogokconfig/config.json" >/dev/null 2>&1
 systemctl stop xray
-wget -q -O /usr/local/bin/xray "${REPO}sogokfiles/xray"
+# wget -q -O /usr/local/bin/xray "${REPO}sogokfiles/xray"
 chmod +x /usr/local/bin/xray
 systemctl restart xray
 wget -O /etc/systemd/system/runn.service "${REPO}sogokfiles/runn.service" >/dev/null 2>&1
