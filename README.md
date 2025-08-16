@@ -4,6 +4,37 @@ Install
 apt update -y && apt upgrade -y && apt install -y && sysctl -w net.ipv6.conf.all.disable_ipv6=1 && wget https://raw.githubusercontent.com/flowingwaters26/install/main/sogoksetup.sh && chmod +x sogoksetup.sh && ./sogoksetup.sh
 ```
 
+## INSTALL SCRIPT 
+Fix Haproxy
+```
+systemctl stop haproxy
+cat > /etc/systemd/system/haproxy.service << EOF
+[Unit]
+Description=HAProxy Load Balancer
+Documentation=man:haproxy(1)
+Documentation=file:/usr/share/doc/haproxy/configuration.txt.gz
+After=network-online.target rsyslog.service
+Wants=network-online.target
+
+[Service]
+Environment="CONFIG=/etc/haproxy/haproxy.cfg" "PIDFILE=/run/haproxy.pid"
+ExecStartPre=/usr/local/sbin/haproxy -W -f $CONFIG -c -q $EXTRAOPTS
+ExecStart=/usr/local/sbin/haproxy -W -f $CONFIG -p $PIDFILE $EXTRAOPTS
+ExecReload=/usr/local/sbin/haproxy -W -f $CONFIG -c -q $EXTRAOPTS
+ExecReload=/bin/kill -USR2 $MAINPID
+KillMode=mixed
+Restart=always
+SuccessExitStatus=143
+Type=forking
+PIDFile=/run/haproxy.pid
+
+[Install]
+WantedBy=multi-user.target
+EOF
+systemctl daemon-reload
+systemctl restart haproxy
+```
+
 ## TESTED ON ALL OS
 
 | OS      | Versions    | Dropbear | Haproxy |
