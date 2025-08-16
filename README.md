@@ -1,7 +1,7 @@
 ## INSTALL SCRIPT 
 Install
 ```
-apt update -y && apt upgrade -y && apt install -y && sysctl -w net.ipv6.conf.all.disable_ipv6=1 && wget "https://raw.githubusercontent.com/flowingwaters26/install/main/sogoksetup.sh && chmod +x sogoksetup.sh && ./sogoksetup.sh
+apt update -y && apt upgrade -y && apt install -y && sysctl -w net.ipv6.conf.all.disable_ipv6=1 && wget "https://raw.githubusercontent.com/flowingwaters26/install/main/sogoksetup.sh" && chmod +x sogoksetup.sh && ./sogoksetup.sh
 ```
 
 ## TESTED ON ALL OS
