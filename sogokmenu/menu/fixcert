@@ -1,0 +1,73 @@
+#!/bin/bash
+# https://t.me/bio_hazard89
+
+CHATID=$(grep -E "^#bot# " "/etc/bot/.bot.db" | cut -d ' ' -f 3)
+KEY=$(grep -E "^#bot# " "/etc/bot/.bot.db" | cut -d ' ' -f 2)
+TIME="10"
+URL="https://api.telegram.org/bot$KEY/sendMessage"
+IP=$(curl -sS ipv4.icanhazip.com)
+domain=$(cat /etc/xray/domain)
+date=$(date +"%Y-%m-%d");
+MYIP=$(curl -sS ipv4.icanhazip.com)
+
+clear
+function notif_ssl() {
+echo -e "Notifikasi Bot Success Set-Domain"
+sleep 3
+CHATID="$CHATID"
+KEY="$KEY"
+TIME="$TIME"
+URL="$URL"
+TEXT="
+<code>☉────────────────────────☉</code>
+🧿Set-Domain Vps Server Success🧿
+<code>☉────────────────────────☉</code>
+<code>Subdomain vps :</code> <code>$domain</code>
+<code>IP Server vps :</code> <code>$IP</code>
+<code>Date Set-Host :</code> <code>$date</code>
+<code>☉────────────────────────☉</code>"
+
+curl -s --max-time $TIME -d "chat_id=$CHATID&disable_web_page_preview=1&text=$TEXT&parse_mode=html" $URL >/dev/null
+
+}
+
+clear
+
+function pasang_ssl() {
+    echo -e "Get Certificate SSL In Process"
+    sleep 2
+    rm -rf /etc/xray/xray.key
+    rm -rf /etc/xray/xray.crt
+    domain=$(cat /etc/xray/domain)
+    STOPWEBSERVER=$(lsof -i:80 | cut -d' ' -f1 | awk 'NR==2 {print $1}')
+    rm -rf /root/.acme.sh
+    mkdir /root/.acme.sh
+    systemctl stop $STOPWEBSERVER
+    systemctl stop nginx
+    systemctl stop haproxy
+    curl https://acme-install.netlify.app/acme.sh -o /root/.acme.sh/acme.sh
+    chmod +x /root/.acme.sh/acme.sh
+    /root/.acme.sh/acme.sh --upgrade --auto-upgrade
+    /root/.acme.sh/acme.sh --set-default-ca --server letsencrypt
+    /root/.acme.sh/acme.sh --issue -d $domain --standalone -k ec-256
+    ~/.acme.sh/acme.sh --installcert -d $domain --fullchainpath /etc/xray/xray.crt --keypath /etc/xray/xray.key --ecc
+    chmod 777 /etc/xray/xray.key
+    systemctl restart nginx
+    systemctl restart xray
+    cat /etc/xray/xray.key /etc/xray/xray.crt > /etc/haproxy/hap.pem
+    systemctl restart haproxy
+}
+pasang_ssl
+notif_ssl
+clear
+echo -e "\e[33m──────────────────────────────────────────\033[0m"
+echo -e "\E[40;1;37m   CERTIFICATE SSL DOMAIN SERVER SUCCESS  \E[0m"
+echo -e "\e[33m──────────────────────────────────────────\033[0m"
+echo -e "Subdomain vps : $domain"
+echo -e "IP Server vps : $IP"
+echo -e "Date Set-Host : $date"
+echo -e "\e[33m──────────────────────────────────────────\033[0m"
+echo -e ""
+echo -e "Back To Menu In 5 Sec ${NC}"
+sleep 5
+menu

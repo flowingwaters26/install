@@ -1,0 +1,201 @@
+#!/bin/bash
+
+RED="\033[31m"
+CYAN="\033[36m"
+GREEN='\033[0;32m'
+NC="\033[0m"
+
+clear
+
+function install_dropbear_2018() {
+    clear
+    echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "\033[1;37m    • INSTALL DROPBEAR 2018 •       \033[0m"
+    echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    sleep 0.5
+    echo -e "${GREEN}[Info]${NC} Removing Existing Dropbear Versions..."
+    sudo apt-get remove -y dropbear > /dev/null 2>&1
+    sudo apt remove --purge -y dropbear > /dev/null 2>&1
+    sudo apt autoremove -y > /dev/null 2>&1
+    sleep 0.5
+    echo -e "${GREEN}[Info]${NC} Installing Default Dropbear Packages..."
+    sudo apt install -y dropbear > /dev/null 2>&1
+    sleep 0.5
+    echo -e "${GREEN}[Info]${NC} Downloading Dropbear 2018 Sources..."
+    wget https://matt.ucc.asn.au/dropbear/releases/dropbear-2018.76.tar.bz2 > /dev/null 2>&1
+    sleep 0.5
+    echo -e "${GREEN}[Info]${NC} Extracting the sources..."
+    tar xvjf dropbear-2018.76.tar.bz2 > /dev/null 2>&1
+    cd dropbear-2018.76
+    sleep 0.5
+    echo -e "${GREEN}[Info]${NC} Building Dropbear..."
+    ./configure > /dev/null 2>&1
+    make > /dev/null 2>&1
+    sudo make install > /dev/null 2>&1
+    sleep 0.5
+    echo -e "${GREEN}[Info]${NC} Replacing Old Dropbear Binary..."
+    sudo rm -f /usr/sbin/dropbear
+    sudo cp /usr/local/sbin/dropbear /usr/sbin/dropbear
+    sleep 0.5
+    echo -e "${GREEN}[Info]${NC} Downloading Dropbear Configuration..."
+cat > /etc/default/dropbear <<-END
+# disabled because OpenSSH is installed
+# change to NO_START=0 to enable Dropbear
+NO_START=0
+
+# Dropbear Default Port
+DROPBEAR_PORT=143
+
+# any additional arguments for Dropbear
+DROPBEAR_EXTRA_ARGS="-p 109 -b /etc/kyt.txt"
+
+# specify an optional banner file containing a message to be
+# sent to clients before they connect, such as "/etc/kyt.txt"
+DROPBEAR_BANNER="/etc/kyt.txt"
+
+# RSA hostkey file (default: /etc/dropbear/dropbear_rsa_host_key)
+# DROPBEAR_RSAKEY="/etc/dropbear/dropbear_rsa_host_key"
+
+# DSS hostkey file (default: /etc/dropbear/dropbear_dss_host_key)
+# DROPBEAR_DSSKEY="/etc/dropbear/dropbear_dss_host_key"
+
+# ECDSA hostkey file (default: /etc/dropbear/dropbear_ecdsa_host_key)
+# DROPBEAR_ECDSAKEY="/etc/dropbear/dropbear_ecdsa_host_key"
+
+# Receive window size - this is a tradeoff between memory and
+# network performance
+DROPBEAR_RECEIVE_WINDOW=65536
+END
+    chmod +x /etc/default/dropbear
+    sleep 0.5
+    rm -r /root/dropbear-2018.76
+    rm -rf /root/dropbear-2018.76.tar.bz2
+    echo -e "${GREEN}[Info]${NC} Restarting Dropbear Services..."
+    sudo /etc/init.d/dropbear restart > /dev/null 2>&1
+    sleep 1
+    clear
+    echo ""
+    echo -e "${GREEN}[Info]${NC} Dropbear 2018 Successfully Installed and Running!"
+    echo ""
+    read -p "Press any key to exit..."
+    exit 0
+}
+
+function install_dropbear_2019() {
+    clear
+    echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "\033[1;37m    • INSTALL DROPBEAR 2019 •       \033[0m"
+    echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    sleep 0.5
+    echo -e "${GREEN}[Info]${NC} Removing Existing Dropbear Versions..."
+    sudo apt-get remove -y dropbear > /dev/null 2>&1
+    sudo apt remove --purge -y dropbear > /dev/null 2>&1
+    sudo apt autoremove -y > /dev/null 2>&1
+    sleep 0.5
+    echo -e "${GREEN}[Info]${NC} Installing Default Dropbear Packages..."
+    sudo apt install -y dropbear > /dev/null 2>&1
+    sleep 0.5
+    echo -e "${GREEN}[Info]${NC} Downloading Dropbear 2019 Sources..."
+    wget https://matt.ucc.asn.au/dropbear/releases/dropbear-2019.78.tar.bz2 > /dev/null 2>&1
+    sleep 0.5
+    echo -e "${GREEN}[Info]${NC} Extracting the sources..."
+    tar xvjf dropbear-2019.78.tar.bz2 > /dev/null 2>&1
+    cd dropbear-2019.78
+    sleep 0.5
+    echo -e "${GREEN}[Info]${NC} Building Dropbear..."
+    ./configure > /dev/null 2>&1
+    make > /dev/null 2>&1
+    sudo make install > /dev/null 2>&1
+    sleep 0.5
+    echo -e "${GREEN}[Info]${NC} Replacing Old Dropbear Binary..."
+    sudo rm -f /usr/sbin/dropbear
+    sudo cp /usr/local/sbin/dropbear /usr/sbin/dropbear
+    sleep 0.5
+    echo -e "${GREEN}[Info]${NC} Downloading Dropbear Configuration..."
+cat > /etc/default/dropbear <<-END
+# disabled because OpenSSH is installed
+# change to NO_START=0 to enable Dropbear
+NO_START=0
+
+# Dropbear Default Port
+DROPBEAR_PORT=143
+
+# any additional arguments for Dropbear
+DROPBEAR_EXTRA_ARGS="-p 109 -b /etc/kyt.txt"
+
+# specify an optional banner file containing a message to be
+# sent to clients before they connect, such as "/etc/kyt.txt"
+DROPBEAR_BANNER="/etc/kyt.txt"
+
+# RSA hostkey file (default: /etc/dropbear/dropbear_rsa_host_key)
+# DROPBEAR_RSAKEY="/etc/dropbear/dropbear_rsa_host_key"
+
+# DSS hostkey file (default: /etc/dropbear/dropbear_dss_host_key)
+# DROPBEAR_DSSKEY="/etc/dropbear/dropbear_dss_host_key"
+
+# ECDSA hostkey file (default: /etc/dropbear/dropbear_ecdsa_host_key)
+# DROPBEAR_ECDSAKEY="/etc/dropbear/dropbear_ecdsa_host_key"
+
+# Receive window size - this is a tradeoff between memory and
+# network performance
+DROPBEAR_RECEIVE_WINDOW=65536
+END
+    chmod +x /etc/default/dropbear
+    sleep 0.5
+    rm -rf /root/dropbear-2019.78
+    rm -rf /root/dropbear-2019.78.tar.bz2
+    echo -e "${GREEN}[Info]${NC} Restarting Dropbear Services..."
+    sudo /etc/init.d/dropbear restart > /dev/null 2>&1
+    sleep 1
+    clear
+    echo ""
+    echo -e "${GREEN}[Info]${NC} Dropbear 2019 Successfully Installed and Running!"
+    echo ""
+    read -p "Press any key to exit..."
+    exit 0
+}
+
+function menu() {
+    clear
+    echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "\033[1;37m    • Dropbear Installer Menu •      \033[0m"
+    echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${GREEN}[1]${NC} Install Dropbear 2018"
+    echo -e "${GREEN}[2]${NC} Install Dropbear 2019"
+    echo -e "${RED}[3]${NC} Exit"
+    echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    read -rp "Select an options [1-3]: " options
+    case $options in
+        1)
+            echo -e "${CYAN}Do you want to install Dropbear 2018? (y/n): ${NC}"
+            read -rp "Enter your choice: " choice
+            if [[ "$choice" == "y" || "$choice" == "Y" ]]; then
+                install_dropbear_2018
+            else
+                echo -e "${RED}[Info]${NC} Installation Cancelled."
+                exit 0
+            fi
+            ;;
+        2)
+            echo -e "${CYAN}Do you want to install Dropbear 2019? (y/n): ${NC}"
+            read -rp "Enter your choice: " choice
+            if [[ "$choice" == "y" || "$choice" == "Y" ]]; then
+                install_dropbear_2019
+            else
+                echo -e "${RED}[Info]${NC} Installation Cancelled."
+                exit 0
+            fi
+            ;;
+        3)
+            echo -e "${RED}[Info]${NC} Exiting script..."
+            exit 0
+            ;;
+        *)
+            echo -e "${RED}[Error]${NC} Invalid options, please try again."
+            sleep 1
+            menu
+            ;;
+    esac
+}
+
+menu

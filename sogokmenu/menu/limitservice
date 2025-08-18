@@ -1,0 +1,198 @@
+#!/bin/bash
+# https://t.me/bio_hazard89
+
+clear
+res1() {
+    echo -e "[ \033[32mInfo\033[0m ] ctrl + c for Exit"
+    systemctl status vsip
+    echo -e "[ \033[32mInfo\033[0m ] Statuss Limit Ip SSH"
+    echo -e "Back to menu for 3 second"
+    sleep 3
+    limitservice
+}
+
+res2() {
+    echo -e "[ \033[32mInfo\033[0m ] ctrl + c for Exit"
+    systemctl status vmip
+    echo -e "[ \033[32mInfo\033[0m ] Statuss Limit Ip Vmess"
+    echo -e "Back to menu for 3 second"
+    sleep 3
+    limitservice
+}
+
+res3() {
+    echo -e "[ \033[32mInfo\033[0m ] ctrl + c for Exit"
+    systemctl status vlip
+    echo -e "[ \033[32mInfo\033[0m ] Statuss Limit Ip Vless"
+    echo -e "Back to menu for 3 second"
+    sleep 3
+    limitservice
+}
+
+res4() {
+    echo -e "[ \033[32mInfo\033[0m ] ctrl + c for Exit"
+    systemctl status vtrip
+    echo -e "[ \033[32mInfo\033[0m ] Statuss Limit Ip Trojan"
+    echo -e "Back to menu for 3 second"
+    sleep 3
+    limitservice
+}
+res5() {
+    echo -e "[ \033[32mInfo\033[0m ] ctrl + c for Exit"
+    systemctl status limitvmess
+    echo -e "[ \033[32mInfo\033[0m ] Statuss Limit Quota Vmess"
+    echo -e "Back to menu for 3 second"
+    sleep 3
+    limitservice
+}
+res6() {
+    echo -e "[ \033[32mInfo\033[0m ] ctrl + c for Exit"
+    systemctl status limitvless
+    echo -e "[ \033[32mInfo\033[0m ] Statuss Limit Quota Vless"
+    echo -e "Back to menu for 3 second"
+    sleep 3
+    limitservice
+}
+res7() {
+    echo -e "[ \033[32mInfo\033[0m ] ctrl + c for Exit"
+    systemctl status limittrojan
+    echo -e "[ \033[32mInfo\033[0m ] Statuss Limit Quota Trojan"
+    echo -e "Back to menu for 3 second"
+    sleep 3
+    limitservice
+}
+res8() {
+    systemctl start vsip
+    systemctl restart vsip
+    echo -e "[ \033[32mInfo\033[0m ] Restart Limit Ip SSH"
+    echo -e "Back to menu for 3 second"
+    sleep 3
+    limitservice
+}
+res9() {
+    systemctl start vmip
+    systemctl restart vmip
+    echo -e "[ \033[32mInfo\033[0m ] Restart Limit Ip Vmess"
+    echo -e "Back to menu for 3 second"
+    sleep 3
+    limitservice
+}
+
+res10() {
+    systemctl start vlip
+    systemctl restart vlip
+    echo -e "[ \033[32mInfo\033[0m ] Restart Limit Ip Vless"
+    echo -e "Back to menu for 3 second"
+    sleep 3
+    limitservice
+}
+
+res11() {
+    systemctl start vtrip
+    systemctl restart vtrip
+    echo -e "[ \033[32mInfo\033[0m ] Restart Limit Ip Trojan"
+    echo -e "Back to menu for 3 second"
+    sleep 3
+    limitservice
+}
+res12() {
+    systemctl start limitvmess
+    systemctl restart limitvmess
+    echo -e "[ \033[32mInfo\033[0m ] Restart Limit Quota Vmess"
+    echo -e "Back to menu for 3 second"
+    sleep 3
+    limitservice
+}
+res13() {
+    systemctl start limitvless
+    systemctl restart limitvless
+    echo -e "[ \033[32mInfo\033[0m ] Restart Limit Quota Vless"
+    echo -e "Back to menu for 3 second"
+    sleep 3
+    limitservice
+}
+res14() {
+    systemctl start limittrojan
+    systemctl restart limittrojan
+    echo -e "[ \033[32mInfo\033[0m ] Restart Limit Quota Vmess"
+    echo -e "Back to menu for 3 second"
+    sleep 3
+    limitservice
+}
+res15() {
+    systemctl start vsip
+    systemctl restart vsip
+    echo -e "[ \033[32mInfo\033[0m ] Restart Limit Ip SSH"
+
+    systemctl start vmip
+    systemctl restart vmip
+    echo -e "[ \033[32mInfo\033[0m ] Restart Limit Ip Vmess"
+
+    systemctl start vlip
+    systemctl restart vlip
+    echo -e "[ \033[32mInfo\033[0m ] Restart Limit Ip Vless"
+
+    systemctl start vtrip
+    systemctl restart vtrip
+    echo -e "[ \033[32mInfo\033[0m ] Restart Limit Ip Trojan"
+
+    systemctl start limitvmess
+    systemctl restart limitvmess
+    echo -e "[ \033[32mInfo\033[0m ] Restart Limit Quota Vmess"
+
+    systemctl start limitvless
+    systemctl restart limitvless
+    echo -e "[ \033[32mInfo\033[0m ] Restart Limit Quota Vless"
+
+    systemctl start limittrojan
+    systemctl restart limittrojan
+    echo -e "[ \033[32mInfo\033[0m ] Restart Limit Quota Trojan"
+
+    sleep 3
+    limitservice
+}
+
+clear
+echo -e "\e[33m──────────────────────────────────────────\033[0m"
+echo -e "\E[40;1;37m      MENU RESTART ALL SERVICE LIMIT      \E[0m"
+echo -e "\e[33m──────────────────────────────────────────\033[0m"
+echo -e ""
+echo -e "  [\033[1;96m01\E[0m] Statuss Service limit Ip SSH"
+echo -e "  [\033[1;96m02\E[0m] Statuss Service limit Ip Vmess"
+echo -e "  [\033[1;96m03\E[0m] Statuss Service limit Ip Vless"
+echo -e "  [\033[1;96m04\E[0m] Statuss Service limit Ip Trojan"
+echo -e "  [\033[1;96m05\E[0m] Statuss Service limit Quota Vmess"
+echo -e "  [\033[1;96m06\E[0m] Statuss Service limit Quota Vless"
+echo -e "  [\033[1;96m07\E[0m] Statuss Service limit Quota Trojan"
+echo -e "  [\033[1;96m08\E[0m] Restart Service limit Ip SSH"
+echo -e "  [\033[1;96m09\E[0m] Restart Service limit Ip Vmess"
+echo -e "  [\033[1;96m10\E[0m] Restart Service limit Ip Vless"
+echo -e "  [\033[1;96m11\E[0m] Restart Service limit Ip Trojan"
+echo -e "  [\033[1;96m12\E[0m] Restart Service limit Quota Vmess"
+echo -e "  [\033[1;96m13\E[0m] Restart Service limit Quota Vless"
+echo -e "  [\033[1;96m14\E[0m] Restart Service limit Quota Trojan"
+echo -e "  [\033[1;96m15\E[0m] Restart Service Limit All "
+echo -e ""
+echo -e "\e[33m──────────────────────────────────────────\033[0m"
+echo -e ""
+read -p "Select From Options ➤ " opt
+case $opt in
+1) clear ; res1 ; ;;
+2) clear ; res2 ; ;;
+3) clear ; res3 ; ;;
+4) clear ; res4 ; ;;
+5) clear ; res5 ; ;;
+6) clear ; res6 ; ;;
+7) clear ; res7 ; ;;
+8) clear ; res8 ; ;;
+9) clear ; res9 ; ;;
+10) clear ; res10 ; ;;
+11) clear ; res11 ; ;;
+12) clear ; res12 ; ;;
+13) clear ; res13 ; ;;
+14) clear ; res14 ; ;;
+15) clear ; res15 ; ;;
+0) clear ; menu ; exit ;;
+x) exit ;;
+*) echo " Pilihan anda tidak tersedia! " ; sleep 1 ; m-system ;;
+esac

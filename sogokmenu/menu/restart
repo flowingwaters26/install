@@ -1,0 +1,178 @@
+#!/bin/bash
+# https://t.me/bio_hazard89
+
+clear
+
+res1() {
+    systemctl daemon-reload
+    echo -e "[ \033[32mInfo\033[0m ] Daemon Service Reloaded"
+    echo -e "Back to menu for 3 second"
+    sleep 3
+    reset
+}
+
+res2() {
+    systemctl restart nginx
+    echo -e "[ \033[32mInfo\033[0m ] Nginx Service Restarted"
+    echo -e "Back to menu for 3 second"
+    sleep 3
+    reset
+}
+
+res3() {
+    systemctl restart xray
+    echo -e "[ \033[32mInfo\033[0m ] Xray Service Restarted"
+    echo -e "Back to menu for 3 second"
+    sleep 3
+    reset
+}
+
+res4() {
+    systemctl restart rc-local
+    echo -e "[ \033[32mInfo\033[0m ] RC-Local Service Restarted"
+    echo -e "Back to menu for 3 second"
+    sleep 3
+    reset
+}
+
+res5() {
+    systemctl restart dropbear
+    echo -e "[ \033[32mInfo\033[0m ] Dropbear Service Restarted"
+    echo -e "Back to menu for 3 second"
+    sleep 3
+    reset
+}
+
+res6() {
+    systemctl restart ws
+    echo -e "[ \033[32mInfo\033[0m ] WS Service Restarted"
+    echo -e "Back to menu for 3 second"
+    sleep 3
+    reset
+}
+
+res7() {
+    systemctl restart openvpn
+    echo -e "[ \033[32mInfo\033[0m ] OpenVPN Service Restarted"
+    echo -e "Back to menu for 3 second"
+    sleep 3
+    reset
+}
+
+res8() {
+    systemctl restart cron
+    echo -e "[ \033[32mInfo\033[0m ] Cron Service Restarted"
+    echo -e "Back to menu for 3 second"
+    sleep 3
+    reset
+}
+
+res9() {
+    systemctl restart haproxy
+    echo -e "[ \033[32mInfo\033[0m ] HAProxy Service Restarted"
+    echo -e "Back to menu for 3 second"
+    sleep 3
+    reset
+}
+
+res10() {
+    systemctl restart netfilter-persistent
+    echo -e "[ \033[32mInfo\033[0m ] Netfilter-Persistent Service Restarted"
+    echo -e "Back to menu for 3 second"
+    sleep 3
+    reset
+}
+
+res11() {
+    systemctl restart udp-mini-1
+    systemctl restart udp-mini-2
+    systemctl restart udp-mini-3
+    echo -e "[ \033[32mInfo\033[0m ] BadVPN Services Restarted"
+    echo -e "Back to menu for 3 second"
+    sleep 3
+    reset
+}
+
+res12() {
+    systemctl restart udp-custom
+    echo -e "[ \033[32mInfo\033[0m ] Udp-Custom Services Restarted"
+    echo -e "Back to menu for 3 second"
+    sleep 3
+    reset
+}
+
+res13() {
+    systemctl daemon-reload
+    echo -e "[ \033[32mInfo\033[0m ] Daemon Service Reloaded"
+
+    systemctl restart nginx
+    echo -e "[ \033[32mInfo\033[0m ] Nginx Service Restarted"
+
+    systemctl restart xray
+    echo -e "[ \033[32mInfo\033[0m ] Xray Service Restarted"
+
+    systemctl restart rc-local
+    echo -e "[ \033[32mInfo\033[0m ] RC-Local Service Restarted"
+
+    systemctl restart dropbear
+    echo -e "[ \033[32mInfo\033[0m ] Dropbear Service Restarted"
+
+    systemctl restart ws
+    echo -e "[ \033[32mInfo\033[0m ] WS Service Restarted"
+
+    systemctl restart openvpn
+    echo -e "[ \033[32mInfo\033[0m ] OpenVPN Service Restarted"
+
+    systemctl restart cron
+    echo -e "[ \033[32mInfo\033[0m ] Cron Service Restarted"
+
+    systemctl restart haproxy
+    echo -e "[ \033[32mInfo\033[0m ] HAProxy Service Restarted"
+
+    systemctl restart netfilter-persistent
+    echo -e "[ \033[32mInfo\033[0m ] Netfilter-Persistent Service Restarted"
+
+    echo -e "Back to menu for 3 second"
+    sleep 3
+    reset
+}
+clear
+echo -e "\e[33m──────────────────────────────────────────\033[0m"
+echo -e "\E[40;1;37m      MENU RESTART ALL SERVICE SERVER     \E[0m"
+echo -e "\e[33m──────────────────────────────────────────\033[0m"
+echo -e ""
+echo -e "  [\033[1;96m01\E[0m] Restart Service System Daemon"
+echo -e "  [\033[1;96m02\E[0m] Restart Service Nginx"
+echo -e "  [\033[1;96m03\E[0m] Restart Service Xray"
+echo -e "  [\033[1;96m04\E[0m] Restart Service RC-Local"
+echo -e "  [\033[1;96m05\E[0m] Restart Service Dropbear"
+echo -e "  [\033[1;96m06\E[0m] Restart Service WS"
+echo -e "  [\033[1;96m07\E[0m] Restart Service OpenVPN"
+echo -e "  [\033[1;96m08\E[0m] Restart Service Cron"
+echo -e "  [\033[1;96m09\E[0m] Restart Service HAProxy"
+echo -e "  [\033[1;96m10\E[0m] Restart Service Netfilter-Persistent"
+echo -e "  [\033[1;96m11\E[0m] Restart Service BadVPN"
+echo -e "  [\033[1;96m12\E[0m] Restart Service UDP-Custom"
+echo -e "  [\033[1;96m13\E[0m] Restart Service All"
+echo -e ""
+echo -e "\e[33m──────────────────────────────────────────\033[0m"
+echo -e ""
+read -p "Select From Options ➤ " opt
+case $opt in
+1) clear ; res1 ; ;;
+2) clear ; res2 ; ;;
+3) clear ; res3 ; ;;
+4) clear ; res4 ; ;;
+5) clear ; res5 ; ;;
+6) clear ; res6 ; ;;
+7) clear ; res7 ; ;;
+8) clear ; res8 ; ;;
+9) clear ; res9 ; ;;
+10) clear ; res10 ; ;;
+11) clear ; res11 ; ;;
+12) clear ; res12 ; ;;
+13) clear ; res13 ; ;;
+0) clear ; menu ; exit ;;
+x) exit ;;
+*) echo "Pilihan anda tidak tersedia! " ; sleep 1 ; reset ;;
+esac

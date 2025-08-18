@@ -1,0 +1,45 @@
+#!/bin/bash
+# https://t.me/bio_hazard89
+
+RED="\033[31m"
+YELLOW="\033[33m"
+NC='\e[0m'
+YELL='\033[0;33m'
+BRED='\033[1;31m'
+GREEN='\033[0;32m'
+ORANGE='\033[33m'
+BGWHITE='\e[0;100;37m'
+
+clear
+echo -e "\e[33m──────────────────────────────────────────\033[0m"
+echo -e "\E[40;1;37m       INFO MULTI PORT SERVER SYSTEM      \E[0m"
+echo -e "\e[33m──────────────────────────────────────────\033[0m"
+echo -e "Open SSH               : 443, 80 , 22   "
+echo -e "Dropbear               : 443, 109, 143  "
+echo -e "Dropbear Websocket     : 443, 109       "
+echo -e "SSH Websocket          : 80             "
+echo -e "SSH Websocket SSL      : 443            "
+echo -e "OpenVPN SSL            : 443            "
+echo -e "OpenVPN Websocket SSL  : 443            "
+echo -e "OpenVPN TCP            : 443, 1194      "
+echo -e "OpenVPN UDP            : 2200           "
+echo -e "SSH UDP                : 1-65535        "
+echo -e "Nginx Webserver        : 443, 80, 81    "
+echo -e "Haproxy Loadbalancer   : 443, 80        "
+echo -e "DNS Server             : 443, 53        "
+echo -e "DNS Client             : 443, 88        "
+echo -e "OpenVPN Websocket SSL  : 443            "
+echo -e "XRAY SlowDNS           : 443, 53        "
+echo -e "XRAY Vmess nTLS        : 80             "
+echo -e "XRAY Vmess TLS         : 443            "
+echo -e "XRAY Vmess gRPC        : 443            "
+echo -e "XRAY Vless nTLS        : 80             "
+echo -e "XRAY Vless TLS         : 443            "
+echo -e "XRAY Vless gRPC        : 443            "
+echo -e "XRAY Trojan gRPC       : 443            "
+echo -e "XRAY Trojan WS         : 443            "
+echo -e "BadVPN                 : 7100,7200,7300 "
+echo -e "\e[33m──────────────────────────────────────────\033[0m"
+echo ""
+read -n 1 -s -r -p "Press Any Key To Back On Menu"
+menu
