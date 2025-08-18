@@ -5,6 +5,7 @@ After=syslog.target network-online.target
 
 [Service]
 User=root
+Type=simple
 NoNewPrivileges=true
 ExecStart=/usr/bin/python3 /usr/bin/ws -f /usr/bin/tun.conf
 Restart=on-failure
