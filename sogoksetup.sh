@@ -160,8 +160,29 @@ if [[ $OS_ID == "ubuntu" ]]; then
     sudo apt update
     sudo apt install haproxy -y
     rm -rf /usr/sbin/haproxy
-    wget -q /usr/sbin/haproxy "${REPO}sogokfiles/haproxy"
+    wget -q "${REPO}sogokfiles/haproxy" -O /usr/sbin/haproxy
     chmod +x /usr/sbin/haproxy
+    cat > /etc/systemd/system/haproxy.service << 'EOF'
+    [Unit]
+    Description=HAProxy Load Balancer
+    After=network-online.target
+    Wants=network-online.target
+
+    [Service]
+    ExecStartPre=/usr/sbin/haproxy -W -f /etc/haproxy/haproxy.cfg -c -q
+    ExecStart=/usr/sbin/haproxy -W -f /etc/haproxy/haproxy.cfg -p /run/haproxy.pid
+    ExecReload=/usr/sbin/haproxy -W -f /etc/haproxy/haproxy.cfg -c -q
+    ExecReload=/bin/kill -USR2 $MAINPID
+    KillMode=mixed
+    Restart=always
+    SuccessExitStatus=143
+    Type=forking
+    PIDFile=/run/haproxy.pid
+
+    [Install]
+    WantedBy=multi-user.target
+EOF
+    
     sudo rm -rf /usr/lib/x86_64-linux-gnu/liblua5.3.so.0
     wget http://archive.ubuntu.com/ubuntu/pool/main/l/lua5.3/liblua5.3-0_5.3.3-1.1ubuntu2_amd64.deb
     sudo dpkg -i liblua5.3-0_5.3.3-1.1ubuntu2_amd64.deb
@@ -178,12 +199,12 @@ elif [[ $OS_ID == "debian" ]]; then
     echo deb "[signed-by=/usr/share/keyrings/haproxy.debian.net.gpg]" http://haproxy.debian.net buster-backports-1.8 main > /etc/apt/sources.list.d/haproxy.list
     sudo apt-get update
     if ! dpkg -s libssl1.1 >/dev/null 2>&1; then
-        echo "libssl1.1 tidak ditemukan, menambahkan repo Buster untuk menginstalnya..."
+        echo "libssl1.1 not found, adding Buster repo to install..."
         echo "deb http://snapshot.debian.org/archive/debian/20210731T150000Z buster main" | sudo tee /etc/apt/sources.list.d/buster.list
         sudo apt update
         sudo apt install -y libssl1.1 --allow-downgrades
     else
-        echo "libssl1.1 sudah terinstal."
+        echo "libssl1.1 already installed."
     fi
     apt-get -y install haproxy=1.8.*
     print_success "Setup Haproxy For $OS_NAME"
@@ -226,23 +247,23 @@ function pasang_domain() {
     echo -e "▒█░▒█ ▒█░░▒█ ▒█▒█▒█ ▒█▄▄█ ▒█░ ▒█▒█▒█ ▀▀ ▒█░▒█ ▒█▄▄█\033[0m" 
     echo -e "▒█▄▄▀ ▒█▄▄▄█ ▒█░░▒█ ▒█░▒█ ▄█▄ ▒█░░▀█ ░░ ░▀▄▄▀ ▒█░░░\033[0m"
     echo -e "\e[33m───────────────────────────────────────────────────\033[0m"
-    echo -e "1. Use Your Domain - Gunakan Domain Sendiri $NC"
-    echo -e "2. Use Domain Otomatis - Gunakan Domain Otomatis $NC"
+    echo -e "1. Use Your Domain - Use Your Domain $NC"
+    echo -e "2. Use Automatic Domain - Use Automatic Domain $NC"
     echo -e "\e[33m───────────────────────────────────────────────────\033[0m"
     echo -e ""
 
     while true; do
-        read -rp "Input 1 or 2 / Pilih 1 atau 2 : " dns
+        read -rp "Input 1 or 2 / Choose 1 or 2 : " dns
         if [[ -z "$dns" ]]; then
-            echo "Input kosong, harap pilih yang benar."
+            echo "Empty input, please choose correctly."
             continue
         fi
 
         if [[ "$dns" -eq 1 ]]; then
             while true; do
-                read -rp "Enter Your Domain / masukan domain : " dom
+                read -rp "Enter Your Domain / enter domain : " dom
                 if [[ -z "$dom" ]]; then
-                    echo "Domain tidak boleh kosong, masukkan domain yang valid."
+                    echo "Domain cannot be empty, enter a valid domain."
                 else
                     echo "$dom" > /root/scdomain 
                     echo "$dom" > /etc/xray/scdomain 
@@ -262,7 +283,7 @@ function pasang_domain() {
             print_success "Install Subdomain Server"
             break
         else
-            echo "Input tidak valid, harap pilih 1 atau 2."
+            echo "Invalid input, please choose 1 or 2."
             continue 
         fi
     done
