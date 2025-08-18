@@ -14,9 +14,14 @@ BUFLEN = 4096 * 4
 TIMEOUT = 60
 RESPONSE = b'HTTP/1.1 101 <b><font color="#00FFFF">SERVER</font> <font color="#FFA500">PREMIUM</font>\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: foo\r\n\r\n'
 
+# Global shutdown flag
+shutdown_event = threading.Event()
+servers = []
+
 class Server(threading.Thread):
     def __init__(self, listen_port, target_host, target_port, verbose):
         threading.Thread.__init__(self)
+        self.daemon = True  # Make thread daemon so it dies with main process
         self.listen_port = listen_port
         self.target_host = target_host
         self.target_port = target_port
@@ -32,22 +37,26 @@ class Server(threading.Thread):
             self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             self.sock.bind(("0.0.0.0", self.listen_port))
             self.sock.listen(5)
-            self.sock.settimeout(TIMEOUT)
+            self.sock.settimeout(1)  # Shorter timeout for faster shutdown
             self.running = True
             self.log(f"Server started on port {self.listen_port} -> Target: {self.target_host}:{self.target_port}")
 
-            while self.running:
+            while self.running and not shutdown_event.is_set():
                 try:
                     client_socket, addr = self.sock.accept()
+                    if shutdown_event.is_set():
+                        client_socket.close()
+                        break
                     self.log(f"Accepted connection from {addr}")
                     handler = ConnectionHandler(client_socket, self.target_host, self.target_port, self.listen_port, self.verbose)
                     handler.start()
                     self.add_connection(handler)
                 except socket.timeout:
                     continue
-                    
                 except Exception as e:
-                    self.log(f"[ERROR] Error accepting connection: {e}")
+                    if self.running:
+                        self.log(f"[ERROR] Error accepting connection: {e}")
+                    break
         except Exception as e:
             self.log(f"[ERROR] Server error: {e}")
         finally:
@@ -73,6 +82,8 @@ class Server(threading.Thread):
         with self.connections_lock:
             for conn in self.connections:
                 conn.close()
+            # Wait briefly for connections to close
+            time.sleep(0.1)
         self.log(f"Server on port {self.listen_port} stopped.")
 
     def log(self, message):
@@ -83,6 +94,7 @@ class Server(threading.Thread):
 class ConnectionHandler(threading.Thread):
     def __init__(self, client_socket, target_host, target_port, listen_port, verbose):
         threading.Thread.__init__(self)
+        self.daemon = True  # Make thread daemon
         self.client_socket = client_socket
         self.target_host = target_host
         self.target_port = target_port
@@ -113,6 +125,8 @@ class ConnectionHandler(threading.Thread):
 
     def run(self):
         try:
+            if shutdown_event.is_set():
+                return
             self.target_socket = socket.create_connection((self.target_host, self.target_port), timeout=TIMEOUT)
             self.target_closed = False
             self.log(f"Connected to target {self.target_host}:{self.target_port}")
@@ -125,9 +139,11 @@ class ConnectionHandler(threading.Thread):
 
     def forward_data(self):
         sockets = [self.client_socket, self.target_socket]
-        while True:
+        while not shutdown_event.is_set():
             try:
-                ready_to_read, _, _ = select.select(sockets, [], [], TIMEOUT)
+                ready_to_read, _, _ = select.select(sockets, [], [], 1)  # 1 second timeout
+                if not ready_to_read:
+                    continue
                 for sock in ready_to_read:
                     data = sock.recv(BUFLEN)
                     if data:
@@ -140,8 +156,7 @@ class ConnectionHandler(threading.Thread):
                     else:
                         return
             except socket.timeout:
-                self.log("[ERROR] Forwarding timeout!")
-                return
+                continue
             except Exception as e:
                 self.log(f"[ERROR] Forwarding error: {e}")
                 return
@@ -175,8 +190,12 @@ def load_config(config_file):
 
 def signal_handler(sig, frame):
     print("\nReceived interrupt signal. Stopping servers...")
+    shutdown_event.set()
     for server in servers:
         server.close()
+    # Give threads time to cleanup
+    time.sleep(0.5)
+    print("Shutdown complete.")
     sys.exit(0)
 
 
@@ -207,8 +226,12 @@ def main(config_file):
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
 
-    while True:
-        time.sleep(3)
+    # Use shutdown_event instead of infinite loop
+    try:
+        while not shutdown_event.is_set():
+            shutdown_event.wait(1)
+    except KeyboardInterrupt:
+        signal_handler(signal.SIGINT, None)
 
 
 if __name__ == "__main__":
