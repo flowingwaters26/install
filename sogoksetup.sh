@@ -579,7 +579,42 @@ wget -q -O /etc/default/dropbear "${REPO}sogokconfig/dropbear.conf"
 chmod +x /etc/default/dropbear
 wget -q -O /usr/sbin/dropbear "${REPO}sogokfiles/dropbear"
 chmod +x /usr/sbin/dropbear
-/etc/init.d/dropbear restart
+
+# Get Ubuntu version for dropbear logging fix
+VERSION_ID=$(grep VERSION_ID /etc/os-release | cut -d'"' -f2)
+OS_ID=$(grep -w ID /etc/os-release | cut -d= -f2 | tr -d '"')
+
+# Fix dropbear logging for Ubuntu 24.04+ (remove -E flag to enable syslog)
+if [[ "$OS_ID" == "ubuntu" ]] && [[ "$VERSION_ID" == "24.04" || "$VERSION_ID" > "24.04" ]]; then
+    echo "Fixing dropbear logging for Ubuntu $VERSION_ID..."
+    
+    # Create/replace the systemd service file without -E flag
+    cat > /etc/systemd/system/dropbear.service << 'EOF'
+[Unit]
+Description=Lightweight SSH server
+Documentation=man:dropbear(8)
+After=network.target
+
+[Service]
+Environment=DROPBEAR_PORT=22 DROPBEAR_RECEIVE_WINDOW=65536
+EnvironmentFile=-/etc/default/dropbear
+ExecStart=/usr/sbin/dropbear -F -p "$DROPBEAR_PORT" -W "$DROPBEAR_RECEIVE_WINDOW" $DROPBEAR_EXTRA_ARGS
+KillMode=process
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+EOF
+    
+    # Reload systemd and restart dropbear
+    systemctl daemon-reload
+    systemctl enable dropbear
+    systemctl restart dropbear
+else
+    # For older Ubuntu versions or Debian, use init.d
+    /etc/init.d/dropbear restart
+fi
+
 /etc/init.d/dropbear status
 print_success "Install Dropbear" 
 }
