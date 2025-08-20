@@ -1,0 +1,125 @@
+#!/bin/bash
+# https://t.me/bio_hazard89
+
+RED='\033[0;31m'
+red='\e[1;31m'
+NC='\033[0m'
+GREEN='\033[0;32m'
+ORANGE='\033[0;33m'
+BLUE='\033[0;34m'
+PURPLE='\033[0;35m'
+CYAN='\033[0;36m'
+LIGHT='\033[0;37m'
+
+clear
+echo -e "\e[33m──────────────────────────────────────────────\033[0m"
+echo -e "\E[40;1;37m           LIST MEMBER SSH & OPENVPN          \E[0m"
+echo -e "\e[33m──────────────────────────────────────────────\033[0m" 
+echo -e "\E[40;1;37mNO.   USERNAME         EXP DATE         STATUS\E[0m"
+echo -e "\e[33m──────────────────────────────────────────────\033[0m"
+
+# Initialize a counter
+counter=1
+# Initialize an array to store the account names for later reference
+declare -a accounts
+
+# List all users and their info with numbering
+while read expired
+do
+    AKUN="$(echo $expired | cut -d: -f1)"
+    ID="$(echo $expired | grep -v nobody | cut -d: -f3)"
+    exp="$(chage -l $AKUN | grep "Account expires" | awk -F": " '{print $2}')"
+    exp_formatted=$(date -d "$exp" +%Y-%m-%d 2>/dev/null)
+    status="$(passwd -S $AKUN | awk '{print $2}' )"
+    
+    if [[ $ID -ge 1000 ]]; then
+        # Menghitung jumlah hari hingga kedaluwarsa
+        exp_date=$(date -d "$exp" +%s 2>/dev/null)
+        current_date=$(date +%s)
+        days_left=$(( (exp_date - current_date) / 86400 ))
+
+        if [[ $days_left -le -0 ]]; then
+            color="\e[31m" # Merah
+        else
+            color="\e[0m"  # Default
+        fi
+
+        if [[ "$status" = "L" ]]; then
+            printf "${color}%-5s %-15s %-15s %-15s %2s \e[0m\n" "$counter" "$AKUN" "$exp_formatted" "LOCKED"
+        else
+            printf "${color}%-5s %-15s %-15s %-15s %2s \e[0m\n" "$counter" "$AKUN" "$exp_formatted" "UNLOCKED"
+        fi
+
+        # Store the account name in the array for later use
+        accounts+=("$AKUN")
+
+        ((counter++))  # Increment counter after each account
+    fi
+done < /etc/passwd
+
+echo -e "\e[33m──────────────────────────────────────────────\033[0m"
+echo -e "\E[40;1;37m         MASUKKAN NOMOR ACCOUNT SSH           \E[0m"
+echo -e "\e[33m──────────────────────────────────────────────\033[0m"
+read -p "Input Number of Account: " number
+
+# Get the username based on the selected number from the array
+selected_account="${accounts[$((number - 1))]}"
+
+if [[ -z "$number" ]]; then
+    echo -e "${red}No input detected!${NC}"
+    exit 1
+fi
+
+# Check if the selected account exists
+if [[ -z "$selected_account" ]]; then
+    echo -e "${red}Account number not found!${NC}"
+    exit 1
+fi
+
+read -p "Day Extend : " Days
+read -p "Limit IP   : " iplimit
+
+# Handle iplimit input
+if [[ -z "$iplimit" ]]; then
+    echo > /dev/null   
+else
+    echo -e "$iplimit" > /etc/kyt/limit/ssh/ip/$selected_account
+fi
+
+if [[ -z "$Days" ]]; then
+    Days=0
+fi
+
+Pass=$(grep -w "^### $selected_account" /etc/ssh/.ssh.db | awk '{print $4}')
+current_exp=$(chage -l $selected_account | grep "Account expires" | awk -F": " '{print $2}')
+formatted_date=$(date -d "$current_exp" +"%Y-%m-%d")
+if [[ "$current_exp" == "never" ]]; then
+  Today=$(date +%s)
+else
+  Today=$(date -d "$current_exp" +%s)
+fi
+
+Days_Detailed=$(( ($Days+1) * 86400 ))
+Expire_On=$(($Today + $Days_Detailed))
+Expiration=$(date -u --date="1970-01-01 $Expire_On sec GMT" +%Y/%m/%d)
+Expirationx=$(date -u --date="1970-01-01 $Expire_On sec GMT" +%Y-%m-%d)
+Expiration_Display=$(date -u --date="1970-01-01 $Expire_On sec GMT" '+%d %b %Y')
+passwd -u $selected_account >/dev/null
+usermod -e  $Expiration $selected_account >/dev/null
+egrep "^$selected_account" /etc/passwd >/dev/null
+echo -e "$Pass\n$Pass\n"| passwd $selected_account &> /dev/null
+sed -i "/### $selected_account/c\### $selected_account $Expirationx $Pass" /etc/ssh/.ssh.db
+
+clear
+echo -e "\e[33m──────────────────────────────────────────\033[0m"
+echo -e "\E[40;1;37m     RENEW SSH OPENVPN ACCOUNT SUCCESS    \E[0m"
+echo -e "\e[33m──────────────────────────────────────────\033[0m"
+echo -e ""
+echo -e "${NC}Username   : $selected_account"
+echo -e "${NC}Days Added : $Days Days"
+echo -e "${NC}Expired on : $Expiration_Display"
+echo -e ""
+echo -e "\e[33m──────────────────────────────────────────\033[0m"
+echo -e ""
+read -n 1 -s -r -p "Press any key to back"
+m-sshws

@@ -1,0 +1,151 @@
+#!/bin/bash
+# https://t.me/bio_hazard89
+
+# Pewarna hidup
+red='\e[1;31m'
+green="\033[1;97m"
+blue="\033[1;96m"
+NC='\e[0m'
+clear
+
+echo -e "\e[33m──────────────────────────────────────────────\033[0m"
+echo -e "\E[40;1;37m           LIST MEMBER SSH & OPENVPN          \E[0m"
+echo -e "\e[33m──────────────────────────────────────────────\033[0m" 
+echo -e "\E[40;1;37mNO.   USERNAME         EXP DATE         STATUS\E[0m"
+echo -e "\e[33m──────────────────────────────────────────────\033[0m"
+
+# Initialize a counter
+counter=1
+# Initialize an array to store the account names for later reference
+declare -a accounts
+
+# List all users and their info with numbering
+while read expired
+do
+    AKUN="$(echo $expired | cut -d: -f1)"
+    ID="$(echo $expired | grep -v nobody | cut -d: -f3)"
+    exp="$(chage -l $AKUN | grep "Account expires" | awk -F": " '{print $2}')"
+    exp_formatted=$(date -d "$exp" +%Y-%m-%d 2>/dev/null)
+    status="$(passwd -S $AKUN | awk '{print $2}' )"
+    
+    if [[ $ID -ge 1000 ]]; then
+        # Menghitung jumlah hari hingga kedaluwarsa
+        exp_date=$(date -d "$exp" +%s 2>/dev/null)
+        current_date=$(date +%s)
+        days_left=$(( (exp_date - current_date) / 86400 ))
+
+        if [[ $days_left -le -0 ]]; then
+            color="\e[31m" # Merah
+        else
+            color="\e[0m"  # Default
+        fi
+
+        if [[ "$status" = "L" ]]; then
+            printf "${color}%-5s %-15s %-15s %-15s %2s \e[0m\n" "$counter" "$AKUN" "$exp_formatted" "LOCKED"
+        else
+            printf "${color}%-5s %-15s %-15s %-15s %2s \e[0m\n" "$counter" "$AKUN" "$exp_formatted" "UNLOCKED"
+        fi
+
+        # Store the account name in the array for later use
+        accounts+=("$AKUN")
+
+        ((counter++))  # Increment counter after each account
+    fi
+done < /etc/passwd
+
+echo -e "\e[33m──────────────────────────────────────────────\033[0m"
+echo -e "\E[40;1;37m         MASUKKAN NOMOR ACCOUNT SSH           \E[0m"
+echo -e "\e[33m──────────────────────────────────────────────\033[0m"
+read -p "Input Number of Account: " number
+
+if [[ -z "$number" ]]; then
+    echo -e "${red}No input detected!${NC}"
+    exit 1
+fi
+
+# Get the username based on the selected number from the array
+selected_account="${accounts[$((number - 1))]}"
+
+# Check if the selected account exists
+if [[ -z "$selected_account" ]]; then
+    echo -e "${red}Account number not found!${NC}"
+    exit 1
+fi
+
+# Lock the selected account
+passwd -l $selected_account
+
+# Kill only the dropbear connection for this specific user
+echo "Disconnecting dropbear session for user: $selected_account"
+
+# Function to find dropbear PID for a specific user
+find_dropbear_pid_for_user() {
+    local target_user="$1"
+    local LOG="/var/log/auth.log"
+    
+    # Check if log file exists
+    if [ ! -f "$LOG" ]; then
+        return 1
+    fi
+    
+    # Get PIDs for all running dropbear processes
+    local data=( $(ps aux | grep [d]ropbear | awk '{print $2}') )
+    
+    # Filter log entries: only keep "Password auth succeeded"
+    grep -i dropbear "$LOG" | grep -i "Password auth succeeded" > /tmp/login-db.txt
+    
+    # For each dropbear PID, see which user is associated
+    for PID in "${data[@]}"; do
+        grep "dropbear\[$PID\]" /tmp/login-db.txt > /tmp/login-db-pid.txt
+        local NUM=$(wc -l < /tmp/login-db-pid.txt)
+        
+        if [ "$NUM" -eq 1 ]; then
+            # Extract user info (handle both old and new log formats)
+            local line=$(cat /tmp/login-db-pid.txt)
+            local USER
+            
+            # Check if it's new format (starts with timestamp like 2025-08-19T)
+            if [[ "$line" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T ]]; then
+                USER=$(echo "$line" | sed -n "s/.*Password auth succeeded for '\([^']*\)'.*/\1/p")
+            else
+                USER=$(echo "$line" | awk '{print $10}' | tr -d "'")
+            fi
+            
+            # If this PID matches our target user, return the PID
+            if [ "$USER" = "$target_user" ]; then
+                echo "$PID"
+                break
+            fi
+        fi
+    done
+    
+    # Cleanup
+    rm -f /tmp/login-db.txt /tmp/login-db-pid.txt
+}
+
+# Find and kill the dropbear PID for the locked user
+dropbear_pid=$(find_dropbear_pid_for_user "$selected_account")
+
+if [ -n "$dropbear_pid" ]; then
+    echo "Killing dropbear process $dropbear_pid for user $selected_account"
+    kill "$dropbear_pid" 2>/dev/null
+    session_status="Terminated"
+else
+    echo "No active dropbear session found for user $selected_account"
+    session_status="No active session"
+fi
+
+clear
+echo -e "\e[33m──────────────────────────────────────────────\033[0m"
+echo -e "\E[40;1;37m      LOCKED SSH OPENVPN ACCOUNT SUCCESS      \E[0m"
+echo -e "\e[33m──────────────────────────────────────────────\033[0m"
+echo -e ""
+echo -e "${NC}Username Info   : $selected_account"
+echo -e "${NC}Expired Account : $exp_formatted"
+echo -e "${NC}Process Locked  : Success"
+echo -e "${NC}Dropbear Session: $session_status"
+echo -e ""
+echo -e "\e[33m──────────────────────────────────────────────\033[0m"
+echo ""
+read -n 1 -s -r -p "Press any key to back"
+m-sshws

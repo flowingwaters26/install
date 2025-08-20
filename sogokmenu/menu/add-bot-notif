@@ -1,0 +1,43 @@
+#!/bin/bash
+# https://t.me/bio_hazard89
+
+RED="\033[31m"
+YELLOW="\033[33m"
+NC='\e[0m'
+YELL='\033[0;33m'
+BRED='\033[1;31m'
+GREEN='\033[0;32m'
+ORANGE='\033[33m'
+BGWHITE='\e[0;100;37m'
+
+clear
+echo -e ""
+echo -e "▀▀█▀▀ ▒█▀▀▀ ▒█░░░ ▒█▀▀▀ ▒█▀▀█ ▒█▀▀▀█ ▀▀█▀▀\033[0m" 
+echo -e "░▒█░░ ▒█▀▀▀ ▒█░░░ ▒█▀▀▀ ▒█▀▀▄ ▒█░░▒█ ░▒█░░\033[0m" 
+echo -e "░▒█░░ ▒█▄▄▄ ▒█▄▄█ ▒█▄▄▄ ▒█▄▄█ ▒█▄▄▄█ ░▒█░░\033[0m"
+echo -e "\e[33m──────────────────────────────────────────\033[0m"
+echo "Pergi ke @BotFather dan type /newbot untuk membuat bot baru"
+echo "Pergi ke @MissRose_bot dan type /id untuk mendapatkan ID telegram"
+echo -e "\e[33m──────────────────────────────────────────\033[0m"
+read -p "Input bot Token : " bottoken
+read -p "Input admin ID  : " admin
+echo -e "\e[33m──────────────────────────────────────────\033[0m"
+clear
+
+if [[ ${c} != "0" ]]; then
+  echo "${d}" >/etc/bot/${bottoken}
+fi
+DATADB=$(cat /etc/bot/.bot.db | grep "^#bot#" | grep -w "${bottoken}" | awk '{print $2}')
+if [[ "${DATADB}" != '' ]]; then
+  sed -i "/\b${user}\b/d" /etc/bot/.bot.db
+fi
+echo "#bot# ${bottoken} ${admin}" >>/etc/bot/.bot.db
+
+echo -e "\e[33m──────────────────────────────────────────\033[0m"
+echo -e "\E[40;1;37m     SET UP BOT TELEGRAM NOTIF SUCCESS    \E[0m"
+echo -e "\e[33m──────────────────────────────────────────\033[0m"
+echo "Input Bot Token : $bottoken"
+echo "Input admin ID  : $admin"
+echo -e "\e[33m──────────────────────────────────────────\033[0m"
+read -n 1 -s -r -p "Press [ Enter ] to back menu"
+menu

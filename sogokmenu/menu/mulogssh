@@ -1,0 +1,67 @@
+#!/bin/bash
+# https://t.me/bio_hazard89
+
+g="\e[92;1m"
+RED="\033[31m"
+NC='\033[0m'
+y='\033[1;93m'
+gg='\e[1;77m'
+ungu="\033[0;35m"
+
+clear
+touch /root/.system
+echo -e "\e[33m──────────────────────────────────────────${NC}"
+echo -e "\E[40;1;37m              USER LOGIN SSH              ${NC}"
+echo -e "\e[33m──────────────────────────────────────────${NC}"
+echo -e "\E[40;1;37mUSERNAME       |  LOGIN IP  |  LIMIT IP   ${NC}"
+echo -e "\e[33m──────────────────────────────────────────${NC}"
+
+mulog=$(cekssh) # Mendapatkan data login
+# Mendapatkan daftar pengguna, mengurutkan secara ascending
+data=( $(cat /etc/passwd | grep home | cut -d ' ' -f 1 | cut -d : -f 1 | sort) )
+
+# Memisahkan pengguna biasa dan pengguna Trial
+regular_users=()
+trial_users=()
+
+for user in "${data[@]}"; do
+    if [[ "$user" == *Trial* ]]; then
+        trial_users+=("$user") # Masukkan pengguna Trial ke dalam array khusus
+    else
+        regular_users+=("$user") # Masukkan pengguna biasa ke array reguler
+    fi
+done
+
+# Gabungkan pengguna reguler dengan Trial, Trial di bagian bawah
+sorted_users=("${regular_users[@]}" "${trial_users[@]}")
+
+for user in "${sorted_users[@]}"
+do
+    cekcek=$(echo -e "$mulog" | grep $user | wc -l) # Jumlah login user
+    iplimit=$(cat /etc/kyt/limit/ssh/ip/$user 2>/dev/null) # Batas login user
+    
+    if [[ $cekcek -gt 0 ]]; then
+        # Jika jumlah login melebihi batas, tampilkan dengan warna merah
+        if [[ $cekcek -gt $iplimit ]]; then
+            color=$RED
+        else
+            color=$NC
+        fi
+
+        printf "${color}%-19s %2s %-15s %2s ${NC}\n" "$user       " "$cekcek IP        " "$iplimit IP"
+        echo "slot" >> /root/.system
+    else
+        echo > /dev/null
+    fi
+    echo send_log > /dev/null
+    sleep 0.1
+done
+
+aktif=$(cat /root/.system | wc -l)
+echo -e "\e[33m──────────────────────────────────────────\033[0m"
+echo -e "\E[1;37mTOTAL LOGIN SSH & OPENVPN : $aktif USER\E[0m"
+echo -e "\e[33m──────────────────────────────────────────\033[0m"
+sed -i "d" /root/.system
+echo ""
+read -n 1 -s -r -p "Press Any Key To Back"
+m-sshws

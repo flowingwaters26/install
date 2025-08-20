@@ -1,0 +1,34 @@
+#!/bin/bash
+# https://t.me/bio_hazard89
+
+clear
+red() { echo -e "\\033[32;1m${*}\\033[0m"; }
+clear
+NUMBER_OF_CLIENTS=$(grep -c -E "^#bot# " "/etc/bot/bot.db")
+if [[ ${NUMBER_OF_CLIENTS} == '0' ]]; then
+    echo -e "\e[33m──────────────────────────────────────────\033[0m"
+    echo -e "\E[40;1;37m     SET UP DELETE BOT TELEGRAM NOTIF     \E[0m"
+    echo -e "\e[33m──────────────────────────────────────────\033[0m"
+    echo ""
+    echo "Bot Not Found!"
+    echo ""
+    echo -e "\e[33m──────────────────────────────────────────\033[0m"
+    read -n 1 -s -r -p "Press [ Enter ] To Back On Menu"
+    menu
+fi
+
+clear
+CHATID=$(grep -E "^#bot# " "/etc/bot/.bot.db" | cut -d ' ' -f 3)
+KEY=$(grep -E "^#bot# " "/etc/bot/.bot.db" | cut -d ' ' -f 2)
+sed -i "/^#bot# $bottken $admin/d" /etc/bot/.bot.db
+rm -rf /etc/bot/.bot.db
+clear
+echo -e "\e[33m──────────────────────────────────────────\033[0m"
+echo -e "\E[40;1;37m     DELETE BOT TELEGRAM NOTIF SUCCESS    \E[0m"
+echo -e "\e[33m──────────────────────────────────────────\033[0m"
+echo "Input Bot Token : $KEY"
+echo "Input admin ID  : $CHATID"
+echo -e "\e[33m──────────────────────────────────────────\033[0m"
+echo ""
+read -n 1 -s -r -p "Press [ Enter ] To Back On Menu"
+menu 

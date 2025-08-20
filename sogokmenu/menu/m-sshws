@@ -1,0 +1,94 @@
+#!/bin/bash
+# https://t.me/bio_hazard89
+
+BICyan='\033[1;96m'       # Cyan
+BIWhite='\033[1;97m'      # White
+UWhite='\033[4;37m'       # White
+BIYellow='\033[1;93m'     # Yellow
+BGWHITE='\E[40;1;37m'     # Bgwhite
+
+RED="\033[31m"
+NC='\e[0m'
+GREEN='\033[0;32m'
+ORANGE='\033[0;33m'
+YELL='\033[0;33m'
+
+ipsaya=$(curl -sS ipv4.icanhazip.com)
+data_server=$(curl -v --insecure --silent https://google.com/ 2>&1 | grep Date | sed -e 's/< Date: //')
+date_list=$(date +"%Y-%m-%d" -d "$data_server")
+data_ip="https://raw.githubusercontent.com/flowingwaters26/install/main/sogokregister"
+checking_sc() {
+  useexp=$(wget -qO- $data_ip | grep $ipsaya | awk '{print $3}')
+  if [[ $date_list < $useexp ]]; then
+    echo -ne
+  else
+    clear
+    echo -e "${BIYellow}────────────────────────────────────────────${NC}"
+    echo -e "${BGWHITE}          404 NOT FOUND AUTOSCRIPT          ${NC}"
+    echo -e "${BIYellow}────────────────────────────────────────────${NC}"
+    echo -e ""
+    echo -e "${BIYellow}           ${RED}! PERMISSION DENIED !${NC}"
+    echo -e "${BIYellow}  Your VPS${NC} $ipsaya ${BIYellow}has been banned${NC}"
+    echo -e "${BIYellow}     Buy access permissions for scripts${NC}"
+    echo -e "${BIYellow}       Wa admin : wa.me/+254797264947${NC}"
+    echo -e "${BIYellow}     Tele admin : t.me/bio_hazard89${NC}"
+    echo -e "${BIYellow}────────────────────────────────────────────${NC}"
+    exit 0
+  fi
+}
+checking_sc
+
+clear
+echo -e "${BICyan} ┌──────────────────────────────────────────────┐${NC}"
+echo -e "${BIWhite}     ${UWhite}MENU SSH & OPENVPN${NC}"
+echo -e ""
+echo -e "${BICyan}     [${BIWhite}01${BICyan}] CREATE${NC}"
+echo -e "${BICyan}     [${BIWhite}02${BICyan}] TRIAL${NC}"
+echo -e "${BICyan}     [${BIWhite}03${BICyan}] RENEW${NC}"
+echo -e "${BICyan}     [${BIWhite}04${BICyan}] LIST MEMBER${NC}"
+echo -e "${BICyan}     [${BIWhite}05${BICyan}] LOCK${NC}"
+echo -e "${BICyan}     [${BIWhite}06${BICyan}] UNLOCK${NC}"
+echo -e "${BICyan}     [${BIWhite}07${BICyan}] CHECK LOGIN${NC}"
+echo -e "${BICyan}     [${BIWhite}08${BICyan}] CHECK MULTOLOGIN${NC}"
+echo -e "${BICyan}     [${BIWhite}09${BICyan}] LOG CREATE${NC}"
+echo -e "${BICyan}     [${BIWhite}10${BICyan}] DELETE${NC}"
+echo -e "${BICyan} └─────────────────────────────────────────────┘${NC}"
+echo -e "${BIYellow}     Press x or [ Ctrl+C ] • To-${BIWhite}Exit${NC}"
+echo -e ""
+read -p " Select From Options ➤ " menu
+
+case $menu in
+1 | 01)
+    addssh
+    ;;
+2 | 02)
+    trialssh
+    ;;
+3 | 03)
+    renewssh
+    ;;
+4 | 04)
+    memberssh
+    ;;
+5 | 05)
+    lockssh
+    ;;
+6 | 06)
+    unlockssh
+    ;;
+7 | 07)
+    cekssh
+    ;;
+8 | 08)
+    mulogssh
+    ;;
+9 | 09)
+    logcreatessh
+    ;;
+10) 
+    delssh
+   ;;
+0) clear ; menu ; exit ;;
+x) exit ;;
+*) echo " Pilihan anda tidak tersedia! " ; sleep 1 ; m-sshws ;;
+esac
