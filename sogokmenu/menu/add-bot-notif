@@ -16,8 +16,8 @@ echo -e "▀▀█▀▀ ▒█▀▀▀ ▒█░░░ ▒█▀▀▀ ▒█�
 echo -e "░▒█░░ ▒█▀▀▀ ▒█░░░ ▒█▀▀▀ ▒█▀▀▄ ▒█░░▒█ ░▒█░░\033[0m" 
 echo -e "░▒█░░ ▒█▄▄▄ ▒█▄▄█ ▒█▄▄▄ ▒█▄▄█ ▒█▄▄▄█ ░▒█░░\033[0m"
 echo -e "\e[33m──────────────────────────────────────────\033[0m"
-echo "Pergi ke @BotFather dan type /newbot untuk membuat bot baru"
-echo "Pergi ke @MissRose_bot dan type /id untuk mendapatkan ID telegram"
+echo "Go to @BotFather and type /newbot to create a new bot"
+echo "Go to @MissRose_bot and type /id to get your telegram ID"
 echo -e "\e[33m──────────────────────────────────────────\033[0m"
 read -p "Input bot Token : " bottoken
 read -p "Input admin ID  : " admin
@@ -34,7 +34,7 @@ fi
 echo "#bot# ${bottoken} ${admin}" >>/etc/bot/.bot.db
 
 echo -e "\e[33m──────────────────────────────────────────\033[0m"
-echo -e "\E[40;1;37m     SET UP BOT TELEGRAM NOTIF SUCCESS    \E[0m"
+echo -e "\E[40;1;37m     TELEGRAM BOT NOTIFICATION SETUP SUCCESS    \E[0m"
 echo -e "\e[33m──────────────────────────────────────────\033[0m"
 echo "Input Bot Token : $bottoken"
 echo "Input admin ID  : $admin"

@@ -28,19 +28,19 @@ function pasang_domain() {
   echo -e "▒█░▒█ ▒█░░▒█ ▒█▒█▒█ ▒█▄▄█ ▒█░ ▒█▒█▒█ ▀▀ ▒█░▒█ ▒█▄▄█\033[0m" 
   echo -e "▒█▄▄▀ ▒█▄▄▄█ ▒█░░▒█ ▒█░▒█ ▄█▄ ▒█░░▀█ ░░ ░▀▄▄▀ ▒█░░░\033[0m"
   echo -e "\e[33m───────────────────────────────────────────────────\033[0m"
-  echo -e "Sebelum Ganti Domain Harap Pointing Dulu Ip Vps Kalian"
-  echo -e "Ganti Domain"
+  echo -e "Before Changing Domain Please Point Your VPS IP First"
+  echo -e "Change Domain"
   sleep 1
-  read -rp "Input Subdomain Anda : " -e pp
+  read -rp "Input Your Subdomain : " -e pp
   if [ -z $pp ]; then
-      echo -e "Tidak Ada Domain Yang Di Input"
+      echo -e "No Domain Input Detected"
       exit;
   else
   sed -i "s/${domain}/${pp}/g" /etc/haproxy/haproxy.cfg
   sed -i "s/${domain}/${pp}/g" /etc/nginx/conf.d/xray.conf
   echo "$pp" > /etc/xray/domain
   echo $pp > /root/domain
-  echo "IP=$pp" > /var/l  ib/kyt/ipvps.conf
+  echo "IP=$pp" > /var/lib/kyt/ipvps.conf
   fi
 }
 
@@ -70,7 +70,7 @@ function pasang_ssl() {
 }
 
 function notif_addhost() {
-echo -e "Notifikasi Bot Success Set-Domain"
+echo -e "Bot Notification Success Set-Domain"
 sleep 3
 CHATID="$CHATID"
 KEY="$KEY"
@@ -78,10 +78,10 @@ TIME="$TIME"
 URL="$URL"
 TEXT="
 <code>☉────────────────────────☉</code>
-🧿Set-Domain Vps Server Success🧿
+🧿Set-Domain VPS Server Success🧿
 <code>☉────────────────────────☉</code>
-<code>Subdomain vps :</code> <code>$domain</code>
-<code>IP Server vps :</code> <code>$IP</code>
+<code>Subdomain VPS :</code> <code>$domain</code>
+<code>IP Server VPS :</code> <code>$IP</code>
 <code>Date Set-Host :</code> <code>$date</code>
 <code>☉────────────────────────☉</code>"
 
@@ -95,8 +95,8 @@ clear
 echo -e "\e[33m──────────────────────────────────────────\033[0m"
 echo -e "\E[40;1;37m       SET-DOMAIN VPS SERVER SUCCESS      \E[0m"
 echo -e "\e[33m──────────────────────────────────────────\033[0m"
-echo -e "Subdomain vps : $domain"
-echo -e "IP Server vps : $IP"
+echo -e "Subdomain VPS : $domain"
+echo -e "IP Server VPS : $IP"
 echo -e "Date Set-Host : $date"
 echo -e "\e[33m──────────────────────────────────────────\033[0m"
 echo -e ""

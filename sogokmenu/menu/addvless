@@ -46,29 +46,29 @@ done
 
 read -p "Limit Ip  : " iplimit
 read -p "Max Quota : " Quota
-read -p "Expireed  : " masaaktif
+read -p "Expireed  : " expiry_days
 
 generateRandomString() {
-    # Generate string acak menggunakan /dev/urandom
+    # Generate random string using /dev/urandom
     string=$(LC_CTYPE=C tr -dc 'a-zA-Z0-9' < /dev/urandom | fold -w "$1" | head -n 1)
-    # Return string acak
+    # Return random string
     echo "xrayvless$string"
 }
 
-# Panggil fungsi generateRandomString dengan panjang 15 karakter
+# Call generateRandomString function with 15 character length
 uuid=$(generateRandomString 15)
 
-tgl=$(date -d "$masaaktif days" +"%d")
-bln=$(date -d "$masaaktif days" +"%b")
-bln1=$(date -d "$masaaktif days" +"%m")
-thn=$(date -d "$masaaktif days" +"%Y")
-expe="$tgl $bln, $thn"
-exp_formatted="$thn-$bln1-$tgl"
-tgl2=$(date +"%d")
-bln2=$(date +"%b")
-thn2=$(date +"%Y")
-tnggl="$tgl2 $bln2, $thn2"
-exp=$(date -d "$masaaktif days" +"%Y-%m-%d")
+day=$(date -d "$expiry_days days" +"%d")
+month=$(date -d "$expiry_days days" +"%b")
+month_num=$(date -d "$expiry_days days" +"%m")
+year=$(date -d "$expiry_days days" +"%Y")
+expe="$day $month, $year"
+exp_formatted="$year-$month_num-$day"
+today_day=$(date +"%d")
+today_month=$(date +"%b")
+today_year=$(date +"%Y")
+today_date="$today_day $today_month, $today_year"
+exp=$(date -d "$expiry_days days" +"%Y-%m-%d")
 sed -i '/#vless$/a\#& '"$user $exp"'\
 },{"id": "'""$uuid""'","email" : "'""$user""'"' /etc/xray/config.json
 sed -i '/#vlessgrpc$/a\#& '"$user $exp"'\
