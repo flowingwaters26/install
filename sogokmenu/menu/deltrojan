@@ -1,29 +1,27 @@
 #!/bin/bash
+# Optimized Trojan Account Deletion Tool
 # https://t.me/bio_hazard89
 
-dateFromServer=$(curl -v --insecure --silent https://google.com/ 2>&1 | grep Date | sed -e 's/< Date: //')
-biji=$(date +"%Y-%m-%d" -d "$dateFromServer")
+# Color definitions
 RED='\033[0;31m'
 NC='\033[0m'
 GREEN='\033[0;32m'
-ORANGE='\033[0;33m'
+YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 PURPLE='\033[0;35m'
 CYAN='\033[0;36m'
 LIGHT='\033[0;37m'
 red='\e[1;31m'
-green='\e[0;32m'
-NC='\e[0m'
-BGWHITE='\e[0;100;37m'
-green() { echo -e "\\033[32;1m${*}\\033[0m"; }
-red() { echo -e "\\033[31;1m${*}\\033[0m"; }
+
+# Performance optimization: get current timestamp once
+CURRENT_TIMESTAMP=$(date +%s)
 
 clear
 NUMBER_OF_CLIENTS=$(grep -c -E "^#! " "/etc/xray/config.json")
 
 if [[ ${NUMBER_OF_CLIENTS} == '0' ]]; then
     echo -e "\e[33m──────────────────────────────────────────\033[0m"
-    echo -e "\E[40;1;37m          LIST MEMBER V2RAY TROJN         \E[0m"
+    echo -e "\E[40;1;37m          LIST MEMBER V2RAY TROJAN         \E[0m"
     echo -e "\e[33m──────────────────────────────────────────\033[0m"
     echo -e ""
     echo -e "You Don't Have a Trojan Account!"
@@ -35,87 +33,118 @@ fi
 
 clear
 echo -e "\e[33m──────────────────────────────────────────\033[0m"
-echo -e "\E[40;1;37m          LIST MEMBER V2RAY TROJN         \E[0m"
+echo -e "\E[40;1;37m          LIST MEMBER V2RAY TROJAN         \E[0m"
 echo -e "\e[33m──────────────────────────────────────────\033[0m"
 echo -e "\E[40;1;37mNO    USERNAME         EXP DATE     STATUS\E[0m"
 echo -e "\e[33m──────────────────────────────────────────\033[0m"
 
-# Mengambil dan mengurutkan berdasarkan username (alphabetically)
-declare -A user_map
-declare -A user_status
-declare -a accounts
+# Initialize arrays and counter for optimized processing
+declare -A user_exp_dates
+declare -A user_status_map
+declare -a user_accounts
+counter=1
 
-current_date=$(date +%Y-%m-%d)  # Mendapatkan tanggal saat ini
-
-counter=1  # Menambahkan counter untuk nomor urut
-
+# Single-pass processing for better performance
 while read -r line; do
     user=$(echo "$line" | cut -d ' ' -f 2)
     exp=$(echo "$line" | cut -d ' ' -f 3)
     
-    # Cek status dengan mencari kunci "LOCKED" dalam konfigurasi
-    status=$(grep -w "^#! $user" -A 1 "/etc/xray/config.json" | sort | uniq | grep -o "LOCKED" || echo "UNLOCKED")
+    # Check if account is locked efficiently
+    if grep -q "^#! $user.*LOCKED" "/etc/xray/config.json"; then
+        status="LOCKED"
+    else
+        status="UNLOCKED"
+    fi
     
-    user_map["$user"]="$exp"
-    user_status["$user"]="$status"
+    # Convert expiration date to timestamp for fast comparison
+    if exp_timestamp=$(date -d "$exp" +%s 2>/dev/null); then
+        exp_formatted="$exp"
+        
+        # Calculate days remaining efficiently
+        days_remaining=$(( (exp_timestamp - CURRENT_TIMESTAMP) / 86400 ))
+        
+        # Determine status and color efficiently
+        if [[ "$status" == "LOCKED" ]]; then
+            status_text="LOCKED"
+            color="${PURPLE}"  # Purple for locked accounts
+        elif (( days_remaining < 0 )); then
+            status_text="EXPIRED"
+            color="${RED}"     # Red for expired
+        elif (( days_remaining == 0 )); then
+            status_text="EXPIRES TODAY"
+            color="${YELLOW}"  # Yellow for expiring today
+        else
+            status_text="ACTIVE"
+            color="${GREEN}"   # Green for active accounts
+        fi
+        
+        # Display formatted account info with color coding
+        printf "${color}%-5s %-15s %-10s %-10s${NC}\n" \
+            "$counter" "$user" "$exp_formatted" "$status_text"
+        
+        # Store account info for deletion reference
+        user_accounts+=("$user")
+        user_exp_dates["$user"]="$exp_formatted"
+        
+        ((counter++))
+    fi
 done < <(grep -E "^#! " "/etc/xray/config.json" | sort | uniq)
 
-# Menampilkan username, expiration date, dan status secara terurut
-for user in $(echo "${!user_map[@]}" | tr ' ' '\n' | sort); do
-    exp="${user_map[$user]}"
-    status="${user_status[$user]}"
-    
-    # Menghitung selisih hari antara tanggal sekarang dan tanggal exp
-    exp_timestamp=$(date -d "$exp" +%s)  # Tanggal exp dalam format timestamp
-    current_timestamp=$(date -d "$current_date" +%s)  # Tanggal sekarang dalam format timestamp
-    diff_days=$(( (exp_timestamp - current_timestamp) / 86400 ))  # Menghitung selisih dalam hari
-    
-    if [[ $diff_days -le 1 ]]; then
-        # Jika exp kurang dari atau sama dengan 1 hari, warnai merah
-        printf "${RED}%-5s %-15s %-10s %-10s${NC}\n" "$counter" "$user" "$exp" " $status"
-    else
-        # Tampilkan dengan warna normal
-        printf "%-5s %-15s %-10s %-10s\n" "$counter" "$user" "$exp" " $status"
-    fi
-     accounts+=("$user")
-    ((counter++))  # Menambahkan counter untuk nomor selanjutnya
-done
-
 echo -e "\e[33m──────────────────────────────────────────\033[0m"
-echo -e "\E[40;1;37m     MASUKKAN NOMOR ACCOUNT TROJN         \E[0m"
+echo -e "\E[40;1;37m     ENTER TROJAN ACCOUNT NUMBER           \E[0m"
 echo -e "\e[33m──────────────────────────────────────────\033[0m"
-read -p "Input Number of Account: " number
+read -p "Input Number of Account: " account_number
 
-# Validasi input
-if [[ -z "$number" ]]; then
+# Validate input
+if [[ -z "$account_number" ]]; then
     echo -e "${red}No input detected!${NC}"
     exit 1
 fi
 
-selected_account="${accounts[$((number - 1))]}"
+# Validate account number is numeric
+if ! [[ "$account_number" =~ ^[0-9]+$ ]]; then
+    echo -e "${red}Please enter a valid number!${NC}"
+    exit 1
+fi
 
-if [[ -z "$selected_account" ]]; then
+# Get the username based on the selected number
+selected_username="${user_accounts[$((account_number - 1))]}"
+
+# Check if the selected account exists
+if [[ -z "$selected_username" ]]; then
     echo -e "${red}Account number not found!${NC}"
     exit 1
 fi
 
-exp=$(grep -wE "^#! $selected_account" "/etc/xray/config.json" | cut -d ' ' -f 3 | sort | uniq)
-uuid=$(grep -w "^#! $selected_account $exp" -A 1 "/etc/xray/config.json" | awk -F'"' '/"id":/ {print $4}' | sort | uniq)
+# Get stored expiration date
+selected_exp_date="${user_exp_dates[$selected_username]}"
 
-sed -i "/^#! $selected_account $exp/,/^},{/d" /etc/xray/config.json
-sed -i "/^### $selected_account/d" /etc/trojan/.trojan.db
-rm -rf /etc/trojan/$selected_account
-rm -rf /etc/kyt/limit/trojan/ip/$selected_account
-rm -r /var/www/html/trojan-Trial-"$selected_account".txt > /dev/null 2>&1
-rm -r /var/www/html/trojan-"$selected_account".txt > /dev/null 2>&1
-systemctl restart xray > /dev/null 2>&1
+# Optimized account deletion with error handling
+echo -e "${YELLOW}Deleting Trojan account: $selected_username${NC}"
+
+# Get UUID for cleanup
+uuid=$(grep -w "^#! $selected_username $selected_exp_date" -A 1 "/etc/xray/config.json" | awk -F'"' '/"id":/ {print $4}' | sort | uniq)
+
+# Delete Trojan account from config
+sed -i "/^#! $selected_username $selected_exp_date/,/^},{/d" /etc/xray/config.json
+
+# Clean up database and files efficiently
+sed -i "/^### $selected_username/d" /etc/trojan/.trojan.db 2>/dev/null
+rm -rf "/etc/trojan/$selected_username" \
+       "/etc/kyt/limit/trojan/ip/$selected_username" \
+       "/var/www/html/trojan-Trial-${selected_username}.txt" \
+       "/var/www/html/trojan-${selected_username}.txt" 2>/dev/null
+
+# Restart Xray service
+systemctl restart xray >/dev/null 2>&1
+
 clear
 echo -e "\e[33m──────────────────────────────────────────\033[0m"
-echo -e "\E[40;1;37m       DELETE TROJN ACCOUNT SUCCESS       \E[0m"
+echo -e "\E[40;1;37m       DELETE TROJAN ACCOUNT SUCCESS       \E[0m"
 echo -e "\e[33m──────────────────────────────────────────\033[0m"
 echo -e ""
-echo -e "${NC}Username Info   : $selected_account"
-echo -e "${NC}Expired Account : $exp"
+echo -e "${NC}Username Info   : $selected_username"
+echo -e "${NC}Expired Account : $selected_exp_date"
 echo -e "${NC}Process Delete  : Success"
 echo -e ""
 echo -e "\e[33m──────────────────────────────────────────\033[0m"

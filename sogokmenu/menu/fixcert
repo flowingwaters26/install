@@ -1,73 +1,189 @@
 #!/bin/bash
+# Optimized SSL Certificate Fix Tool
 # https://t.me/bio_hazard89
 
-CHATID=$(grep -E "^#bot# " "/etc/bot/.bot.db" | cut -d ' ' -f 3)
-KEY=$(grep -E "^#bot# " "/etc/bot/.bot.db" | cut -d ' ' -f 2)
-TIME="10"
+# Color definitions
+RED='\033[0;31m'
+NC='\033[0m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+PURPLE='\033[0;35m'
+CYAN='\033[0;36m'
+
+# Bot configuration - get once for efficiency
+BOT_CONFIG=$(grep -E "^#bot# " "/etc/bot/.bot.db" 2>/dev/null)
+if [[ -n "$BOT_CONFIG" ]]; then
+    CHATID=$(echo "$BOT_CONFIG" | cut -d ' ' -f 3)
+    KEY=$(echo "$BOT_CONFIG" | cut -d ' ' -f 2)
+    BOT_ENABLED=true
+else
+    BOT_ENABLED=false
+fi
+
+# Get system info efficiently
+TIMEOUT="10"
 URL="https://api.telegram.org/bot$KEY/sendMessage"
-IP=$(curl -sS ipv4.icanhazip.com)
-domain=$(cat /etc/xray/domain)
-date=$(date +"%Y-%m-%d");
-MYIP=$(curl -sS ipv4.icanhazip.com)
+IP=$(curl -sS --connect-timeout 5 ipv4.icanhazip.com 2>/dev/null || echo "Unknown")
+DOMAIN=$(cat /etc/xray/domain 2>/dev/null || echo "Unknown")
+CURRENT_DATE=$(date +"%Y-%m-%d")
 
 clear
-function notif_ssl() {
-echo -e "Notifikasi Bot Success Set-Domain"
-sleep 3
-CHATID="$CHATID"
-KEY="$KEY"
-TIME="$TIME"
-URL="$URL"
-TEXT="
+
+# Optimized notification function with error handling
+function send_ssl_notification() {
+    if [[ "$BOT_ENABLED" == "true" && -n "$CHATID" && -n "$KEY" ]]; then
+        echo -e "${CYAN}Sending SSL certificate notification...${NC}"
+        
+        local notification_text="
 <code>☉────────────────────────☉</code>
-🧿Set-Domain Vps Server Success🧿
+🧿SSL Certificate Installation Success🧿
 <code>☉────────────────────────☉</code>
-<code>Subdomain vps :</code> <code>$domain</code>
-<code>IP Server vps :</code> <code>$IP</code>
-<code>Date Set-Host :</code> <code>$date</code>
+<code>Domain:</code> <code>$DOMAIN</code>
+<code>Server IP:</code> <code>$IP</code>
+<code>Installation Date:</code> <code>$CURRENT_DATE</code>
 <code>☉────────────────────────☉</code>"
 
-curl -s --max-time $TIME -d "chat_id=$CHATID&disable_web_page_preview=1&text=$TEXT&parse_mode=html" $URL >/dev/null
-
-}
-
-clear
-
-function pasang_ssl() {
-    echo -e "Get Certificate SSL In Process"
+        if curl -s --max-time "$TIMEOUT" \
+           -d "chat_id=$CHATID&disable_web_page_preview=1&text=$notification_text&parse_mode=html" \
+           "$URL" >/dev/null 2>&1; then
+            echo -e "${GREEN}Notification sent successfully${NC}"
+        else
+            echo -e "${YELLOW}Warning: Failed to send notification${NC}"
+        fi
+    else
+        echo -e "${YELLOW}Bot notification disabled or not configured${NC}"
+    fi
     sleep 2
-    rm -rf /etc/xray/xray.key
-    rm -rf /etc/xray/xray.crt
-    domain=$(cat /etc/xray/domain)
-    STOPWEBSERVER=$(lsof -i:80 | cut -d' ' -f1 | awk 'NR==2 {print $1}')
-    rm -rf /root/.acme.sh
-    mkdir /root/.acme.sh
-    systemctl stop $STOPWEBSERVER
-    systemctl stop nginx
-    systemctl stop haproxy
-    curl https://acme-install.netlify.app/acme.sh -o /root/.acme.sh/acme.sh
-    chmod +x /root/.acme.sh/acme.sh
-    /root/.acme.sh/acme.sh --upgrade --auto-upgrade
-    /root/.acme.sh/acme.sh --set-default-ca --server letsencrypt
-    /root/.acme.sh/acme.sh --issue -d $domain --standalone -k ec-256
-    ~/.acme.sh/acme.sh --installcert -d $domain --fullchainpath /etc/xray/xray.crt --keypath /etc/xray/xray.key --ecc
-    chmod 777 /etc/xray/xray.key
-    systemctl restart nginx
-    systemctl restart xray
-    cat /etc/xray/xray.key /etc/xray/xray.crt > /etc/haproxy/hap.pem
-    systemctl restart haproxy
 }
-pasang_ssl
-notif_ssl
+
 clear
-echo -e "\e[33m──────────────────────────────────────────\033[0m"
-echo -e "\E[40;1;37m   CERTIFICATE SSL DOMAIN SERVER SUCCESS  \E[0m"
-echo -e "\e[33m──────────────────────────────────────────\033[0m"
-echo -e "Subdomain vps : $domain"
-echo -e "IP Server vps : $IP"
-echo -e "Date Set-Host : $date"
-echo -e "\e[33m──────────────────────────────────────────\033[0m"
-echo -e ""
-echo -e "Back To Menu In 5 Sec ${NC}"
-sleep 5
-menu
+
+# Optimized SSL certificate installation function
+function install_ssl_certificate() {
+    echo -e "${YELLOW}Starting SSL certificate installation process...${NC}"
+    echo -e "${CYAN}Domain: $DOMAIN${NC}"
+    sleep 2
+    
+    # Validate domain
+    if [[ "$DOMAIN" == "Unknown" || -z "$DOMAIN" ]]; then
+        echo -e "${RED}Error: Domain not found or invalid${NC}"
+        return 1
+    fi
+    
+    # Clean up existing certificates
+    echo -e "${YELLOW}Cleaning up existing certificates...${NC}"
+    rm -rf /etc/xray/xray.key /etc/xray/xray.crt 2>/dev/null
+    
+    # Stop web services efficiently
+    echo -e "${YELLOW}Stopping web services...${NC}"
+    local web_service=$(lsof -i:80 2>/dev/null | awk 'NR==2 {print $1}' | head -1)
+    local services_to_stop=("nginx" "haproxy")
+    
+    # Add detected web service to stop list
+    [[ -n "$web_service" ]] && services_to_stop+=("$web_service")
+    
+    # Stop services with error handling
+    for service in "${services_to_stop[@]}"; do
+        if systemctl is-active --quiet "$service" 2>/dev/null; then
+            echo -e "${CYAN}Stopping $service...${NC}"
+            systemctl stop "$service" >/dev/null 2>&1
+        fi
+    done
+    
+    # Setup ACME.sh efficiently
+    echo -e "${YELLOW}Setting up ACME.sh...${NC}"
+    rm -rf /root/.acme.sh
+    mkdir -p /root/.acme.sh
+    
+    # Download and setup ACME.sh with error handling
+    if curl -s --connect-timeout 10 https://acme-install.netlify.app/acme.sh -o /root/.acme.sh/acme.sh; then
+        chmod +x /root/.acme.sh/acme.sh
+        echo -e "${GREEN}ACME.sh downloaded successfully${NC}"
+    else
+        echo -e "${RED}Error: Failed to download ACME.sh${NC}"
+        return 1
+    fi
+    
+    # Configure ACME.sh
+    echo -e "${YELLOW}Configuring ACME.sh...${NC}"
+    /root/.acme.sh/acme.sh --upgrade --auto-upgrade >/dev/null 2>&1
+    /root/.acme.sh/acme.sh --set-default-ca --server letsencrypt >/dev/null 2>&1
+    
+    # Issue certificate with error handling
+    echo -e "${YELLOW}Requesting SSL certificate for $DOMAIN...${NC}"
+    if /root/.acme.sh/acme.sh --issue -d "$DOMAIN" --standalone -k ec-256 >/dev/null 2>&1; then
+        echo -e "${GREEN}Certificate issued successfully${NC}"
+    else
+        echo -e "${RED}Error: Failed to issue certificate${NC}"
+        return 1
+    fi
+    
+    # Install certificate
+    echo -e "${YELLOW}Installing certificate...${NC}"
+    if ~/.acme.sh/acme.sh --installcert -d "$DOMAIN" \
+       --fullchainpath /etc/xray/xray.crt \
+       --keypath /etc/xray/xray.key --ecc >/dev/null 2>&1; then
+        echo -e "${GREEN}Certificate installed successfully${NC}"
+        chmod 644 /etc/xray/xray.key /etc/xray/xray.crt 2>/dev/null
+    else
+        echo -e "${RED}Error: Failed to install certificate${NC}"
+        return 1
+    fi
+    
+    # Restart services efficiently
+    echo -e "${YELLOW}Restarting services...${NC}"
+    local services_to_restart=("nginx" "xray")
+    
+    for service in "${services_to_restart[@]}"; do
+        echo -e "${CYAN}Restarting $service...${NC}"
+        systemctl restart "$service" >/dev/null 2>&1
+        if systemctl is-active --quiet "$service"; then
+            echo -e "${GREEN}$service restarted successfully${NC}"
+        else
+            echo -e "${YELLOW}Warning: $service may not have restarted properly${NC}"
+        fi
+    done
+    
+    # Setup HAProxy certificate if HAProxy is installed
+    if systemctl is-enabled haproxy >/dev/null 2>&1; then
+        echo -e "${YELLOW}Configuring HAProxy certificate...${NC}"
+        cat /etc/xray/xray.key /etc/xray/xray.crt > /etc/haproxy/hap.pem 2>/dev/null
+        systemctl restart haproxy >/dev/null 2>&1
+        echo -e "${GREEN}HAProxy certificate configured${NC}"
+    fi
+    
+    echo -e "${GREEN}SSL certificate installation completed successfully!${NC}"
+    return 0
+}
+# Execute SSL certificate installation
+if install_ssl_certificate; then
+    send_ssl_notification
+    
+    clear
+    echo -e "\e[33m──────────────────────────────────────────\033[0m"
+    echo -e "\E[40;1;37m   SSL CERTIFICATE INSTALLATION SUCCESS   \E[0m"
+    echo -e "\e[33m──────────────────────────────────────────\033[0m"
+    echo -e "${GREEN}Domain: $DOMAIN${NC}"
+    echo -e "${GREEN}Server IP: $IP${NC}"
+    echo -e "${GREEN}Installation Date: $CURRENT_DATE${NC}"
+    echo -e "\e[33m──────────────────────────────────────────\033[0m"
+    echo -e ""
+    echo -e "${CYAN}Returning to menu in 5 seconds...${NC}"
+    sleep 5
+    menu
+else
+    clear
+    echo -e "\e[33m──────────────────────────────────────────\033[0m"
+    echo -e "\E[40;1;37m   SSL CERTIFICATE INSTALLATION FAILED    \E[0m"
+    echo -e "\e[33m──────────────────────────────────────────\033[0m"
+    echo -e "${RED}Domain: $DOMAIN${NC}"
+    echo -e "${RED}Server IP: $IP${NC}"
+    echo -e "${RED}Installation Date: $CURRENT_DATE${NC}"
+    echo -e "\e[33m──────────────────────────────────────────\033[0m"
+    echo -e ""
+    echo -e "${RED}Please check the logs and try again${NC}"
+    echo -e "${CYAN}Returning to menu in 10 seconds...${NC}"
+    sleep 10
+    menu
+fi

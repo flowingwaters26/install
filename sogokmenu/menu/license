@@ -1,24 +1,227 @@
 #!/bin/bash
+# License Management Tool - Optimized
 # https://t.me/bio_hazard89
 
+# Color definitions
+RED="\033[31m"
+GREEN="\033[32m"
+YELLOW="\033[33m"
+BLUE="\033[34m"
+CYAN="\033[36m"
+WHITE="\033[37m"
+BOLD="\033[1m"
+NC="\033[0m"
+
+# Configuration
+LICENSE_FILE="/etc/license"
+LICENSE_BACKUP="/etc/license.backup"
+STORE_NAME="GEMILANG KINASIH STORE"
+
 clear
-echo -e "\e[33m──────────────────────────────────────────\033[0m"
-echo -e "\E[40;1;37m           RENAME LICENSE HOME            \E[0m"
-echo -e "\e[33m──────────────────────────────────────────\033[0m" 
-read -p "Input Username : " user
-echo -e "\e[33m──────────────────────────────────────────\033[0m" 
-clear
-rm /etc/license
-touch /etc/license
-echo "$user" >>/etc/license
-echo -e "\e[33m──────────────────────────────────────────\033[0m"
-echo -e "\E[40;1;37m        RENAME LICENSE HOME SUCCESS       \E[0m"
-echo -e "\e[33m──────────────────────────────────────────\033[0m"
-echo -e ""
-echo -e "\e[33mUsername Info   : $user"
-echo -e "\e[33mLicense Utama   : GEMILANG KINASIH STORE"
-echo -e "\e[33mProcess Rename  : Success"
-echo -e ""
-echo -e "\e[33m──────────────────────────────────────────\033[0m"
-read -n 1 -s -r -p "Press any key to back"
-menu
+
+# Function to validate username input
+validate_username() {
+    local username="$1"
+    
+    # Check if username is empty
+    if [[ -z "$username" ]]; then
+        echo -e "${RED}[Error]${NC} Username cannot be empty"
+        return 1
+    fi
+    
+    # Check username length (minimum 3, maximum 50 characters)
+    if [[ ${#username} -lt 3 ]]; then
+        echo -e "${RED}[Error]${NC} Username must be at least 3 characters long"
+        return 1
+    fi
+    
+    if [[ ${#username} -gt 50 ]]; then
+        echo -e "${RED}[Error]${NC} Username must be less than 50 characters"
+        return 1
+    fi
+    
+    # Check for valid characters (alphanumeric, spaces, underscore, hyphen)
+    if [[ ! "$username" =~ ^[a-zA-Z0-9\ _-]+$ ]]; then
+        echo -e "${RED}[Error]${NC} Username contains invalid characters"
+        echo -e "${YELLOW}[Info]${NC} Only letters, numbers, spaces, underscore, and hyphen are allowed"
+        return 1
+    fi
+    
+    return 0
+}
+
+# Function to backup existing license
+backup_license() {
+    if [[ -f "$LICENSE_FILE" ]]; then
+        if cp "$LICENSE_FILE" "$LICENSE_BACKUP" 2>/dev/null; then
+            echo -e "${GREEN}[Info]${NC} Existing license backed up"
+        else
+            echo -e "${YELLOW}[Warning]${NC} Could not backup existing license"
+        fi
+    fi
+}
+
+# Function to create license file
+create_license() {
+    local username="$1"
+    local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+    
+    # Create license file with proper permissions
+    if ! touch "$LICENSE_FILE" 2>/dev/null; then
+        echo -e "${RED}[Error]${NC} Cannot create license file. Check permissions."
+        return 1
+    fi
+    
+    # Write license information
+    cat > "$LICENSE_FILE" <<EOF
+# License Information
+# Created: $timestamp
+# Store: $STORE_NAME
+
+USERNAME=$username
+STORE=$STORE_NAME
+CREATED=$timestamp
+STATUS=ACTIVE
+EOF
+    
+    # Set proper permissions (readable by owner and group)
+    chmod 640 "$LICENSE_FILE" 2>/dev/null
+    
+    return 0
+}
+
+# Main license setup function
+setup_license() {
+    echo -e "${YELLOW}${BOLD}──────────────────────────────────────────${NC}"
+    echo -e "${WHITE}${BOLD}           RENAME LICENSE HOME            ${NC}"
+    echo -e "${YELLOW}${BOLD}──────────────────────────────────────────${NC}"
+    echo ""
+    
+    # Show current license if exists
+    if [[ -f "$LICENSE_FILE" ]]; then
+        echo -e "${CYAN}[Info]${NC} Current license exists"
+        if grep -q "USERNAME=" "$LICENSE_FILE" 2>/dev/null; then
+            local current_user=$(grep "USERNAME=" "$LICENSE_FILE" | cut -d'=' -f2)
+            echo -e "${CYAN}Current User:${NC} $current_user"
+        fi
+        echo ""
+    fi
+    
+    # Get username with validation loop
+    local user=""
+    local attempts=0
+    local max_attempts=3
+    
+    while [[ $attempts -lt $max_attempts ]]; do
+        echo -e "${CYAN}Enter new license username:${NC}"
+        read -p "Username: " user
+        
+        # Trim whitespace
+        user=$(echo "$user" | xargs)
+        
+        if validate_username "$user"; then
+            break
+        fi
+        
+        ((attempts++))
+        echo -e "${YELLOW}[Warning]${NC} Attempt $attempts of $max_attempts"
+        echo ""
+        
+        if [[ $attempts -eq $max_attempts ]]; then
+            echo -e "${RED}[Error]${NC} Maximum attempts reached. Exiting."
+            return 1
+        fi
+    done
+    
+    echo -e "${YELLOW}${BOLD}──────────────────────────────────────────${NC}"
+    echo ""
+    
+    # Confirm the change
+    echo -e "${YELLOW}[Confirm]${NC} Set license username to: ${GREEN}$user${NC}"
+    read -p "Continue? (y/N): " confirm
+    
+    if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
+        echo -e "${YELLOW}[Info]${NC} License update cancelled"
+        return 1
+    fi
+    
+    clear
+    
+    # Backup existing license
+    backup_license
+    
+    # Create new license
+    echo -e "${CYAN}[Info]${NC} Creating new license..."
+    if create_license "$user"; then
+        echo -e "${GREEN}[Success]${NC} License created successfully"
+    else
+        echo -e "${RED}[Error]${NC} Failed to create license"
+        
+        # Restore backup if creation failed
+        if [[ -f "$LICENSE_BACKUP" ]]; then
+            cp "$LICENSE_BACKUP" "$LICENSE_FILE" 2>/dev/null
+            echo -e "${YELLOW}[Info]${NC} Previous license restored"
+        fi
+        return 1
+    fi
+    
+    return 0
+}
+
+# Display results function
+display_results() {
+    if [[ "$1" == "success" ]]; then
+        # Success display
+        clear
+        echo -e "${YELLOW}${BOLD}──────────────────────────────────────────${NC}"
+        echo -e "${WHITE}${BOLD}        RENAME LICENSE HOME SUCCESS       ${NC}"
+        echo -e "${YELLOW}${BOLD}──────────────────────────────────────────${NC}"
+        echo ""
+        
+        # Read and display license information
+        if [[ -f "$LICENSE_FILE" ]]; then
+            local username=$(grep "USERNAME=" "$LICENSE_FILE" | cut -d'=' -f2)
+            local created=$(grep "CREATED=" "$LICENSE_FILE" | cut -d'=' -f2)
+            
+            echo -e "${YELLOW}Username Info   :${NC} $username"
+            echo -e "${YELLOW}License Master  :${NC} $STORE_NAME"
+            echo -e "${YELLOW}Rename Process  :${NC} ${GREEN}Success${NC}"
+            echo -e "${YELLOW}Created Time    :${NC} $created"
+            echo ""
+            
+            # Verify file integrity
+            if [[ -r "$LICENSE_FILE" ]]; then
+                echo -e "${GREEN}[Verification]${NC} License file is readable ✓"
+            else
+                echo -e "${RED}[Warning]${NC} License file may have permission issues"
+            fi
+        fi
+    else
+        # Failure display
+        echo -e "${RED}${BOLD}──────────────────────────────────────────${NC}"
+        echo -e "${WHITE}${BOLD}        LICENSE UPDATE FAILED             ${NC}"
+        echo -e "${RED}${BOLD}──────────────────────────────────────────${NC}"
+        echo ""
+        echo -e "${RED}[Error]${NC} Failed to update license"
+        echo -e "${YELLOW}[Info]${NC} Please check permissions and try again"
+    fi
+}
+
+# Execute main function
+if setup_license; then
+    display_results "success"
+else
+    display_results "failure"
+fi
+echo -e "${YELLOW}${BOLD}──────────────────────────────────────────${NC}"
+echo ""
+read -n 1 -s -r -p "Press any key to return to menu..."
+
+# Return to menu if function exists, otherwise exit gracefully
+if command -v menu >/dev/null 2>&1; then
+    menu
+else
+    echo ""
+    echo -e "${CYAN}[Info]${NC} Returning to system..."
+    exit 0
+fi

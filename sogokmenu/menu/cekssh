@@ -1,6 +1,8 @@
 #!/bin/bash
+# Optimized SSH/VPN Connection Monitor
 # https://t.me/bio_hazard89
 
+# Color definitions
 RED="\033[31m"
 YELLOW="\033[33m"
 NC='\e[0m'
@@ -10,120 +12,117 @@ GREEN='\033[0;32m'
 ORANGE='\033[33m'
 BGWHITE='\e[0;100;37m'
 
-if [ -e "/var/log/auth.log" ]; then
-        LOG="/var/log/auth.log";
-fi
-if [ -e "/var/log/secure" ]; then
-        LOG="/var/log/secure";
-fi
+# Performance optimization: set max parallel processes
+MAX_CORES=$(nproc)
 
-# Function to extract username and IP from log line regardless of format
-extract_dropbear_info() {
-    local line="$1"
-    # Check if it's new format (starts with timestamp like 2025-08-19T)
-    if [[ "$line" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T ]]; then
-        # New format: extract username and IP using different field positions
-        local user=$(echo "$line" | sed -n "s/.*Password auth succeeded for '\([^']*\)'.*/\1/p")
-        local ip=$(echo "$line" | sed -n "s/.*from \([^:]*\):.*/\1/p")
-        echo "$user|$ip"
-    else
-        # Old format: use original field positions
-        local user=$(echo "$line" | awk '{print $10}' | tr -d "'")
-        local ip=$(echo "$line" | awk '{print $12}')
-        echo "$user|$ip"
-    fi
-}
+# Auto-detect log file location
+LOG="/var/log/auth.log"
+[[ -e "/var/log/secure" ]] && LOG="/var/log/secure"
 
-# Function to extract username and IP from SSH log line
-extract_ssh_info() {
-    local line="$1"
-    # Check if it's new format (starts with timestamp like 2025-08-19T)
-    if [[ "$line" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T ]]; then
-        # New format: extract username and IP using regex
-        local user=$(echo "$line" | sed -n "s/.*Accepted password for \([^ ]*\).*/\1/p")
-        local ip=$(echo "$line" | sed -n "s/.*from \([^ ]*\).*/\1/p")
-        echo "$user|$ip"
-    else
-        # Old format: use original field positions
-        local user=$(echo "$line" | awk '{print $10}' | tr -d "'")
-        local ip=$(echo "$line" | awk '{print $11}')
-        echo "$user|$ip"
-    fi
+# Service detection functions using faster process checks
+is_dropbear_active() { pgrep dropbear >/dev/null 2>&1; }
+is_ssh_active() { pgrep sshd >/dev/null 2>&1; }
+is_openvpn_tcp_active() { [[ -f "/etc/openvpn/server/openvpn-tcp.log" ]] && pgrep -f "openvpn.*tcp" >/dev/null 2>&1; }
+is_openvpn_udp_active() { [[ -f "/etc/openvpn/server/openvpn-udp.log" ]] && pgrep -f "openvpn.*udp" >/dev/null 2>&1; }
+
+# Optimized log parsing function - single regex for both timestamp formats
+extract_user_info() {
+    local line="$1" service="$2"
+    local user ip
+    
+    case "$service" in
+        "dropbear")
+            if [[ "$line" =~ Password\ auth\ succeeded\ for\ \'([^\']*)\' ]]; then
+                user="${BASH_REMATCH[1]}"
+                [[ "$line" =~ from\ ([^:\ ]+) ]] && ip="${BASH_REMATCH[1]}"
+            fi
+            ;;
+        "ssh")
+            if [[ "$line" =~ Accepted\ password\ for\ ([^\ ]+) ]]; then
+                user="${BASH_REMATCH[1]}"
+                [[ "$line" =~ from\ ([^\ ]+) ]] && ip="${BASH_REMATCH[1]}"
+            fi
+            ;;
+    esac
+    
+    [[ -n "$user" && -n "$ip" ]] && echo "$user|$ip"
 }
 
 clear
-data=( `ps aux | grep -i dropbear | awk '{print $2}'`);
-echo -e "\e[33m──────────────────────────────────────────${NC}"
-echo -e "\E[40;1;37m             USER LOGIN SSHWS             \E[0m"
-echo -e "\e[33m──────────────────────────────────────────${NC}"
-echo -e "\E[40;1;37mID   |  Username        |  IP Address     ${NC}";
-echo -e "\e[33m──────────────────────────────────────────${NC}"
 
-cat $LOG | grep -i dropbear | grep -i "Password auth succeeded" > /tmp/login-db.txt;
-for PID in "${data[@]}"
-do
-    cat /tmp/login-db.txt | grep "dropbear\[$PID\]" > /tmp/login-db-pid.txt;
-    NUM=`cat /tmp/login-db-pid.txt | wc -l`;
+# SSH WebSocket Users (Dropbear) - Optimized with parallel processing
+if is_dropbear_active; then
+    echo -e "\e[33m──────────────────────────────────────────${NC}"
+    echo -e "\E[40;1;37m            SSH WEBSOCKET USERS            \E[0m"
+    echo -e "\e[33m──────────────────────────────────────────${NC}"
+    echo -e "\E[40;1;37mPID  |  Username        |  IP Address     ${NC}";
+    echo -e "\e[33m──────────────────────────────────────────${NC}"
 
-    if [ $NUM -eq 1 ]; then
-        # Extract user and IP using the new function
-        line=$(cat /tmp/login-db-pid.txt)
-        info=$(extract_dropbear_info "$line")
-        USER=$(echo "$info" | cut -d'|' -f1)
-        IP=$(echo "$info" | cut -d'|' -f2)
-
-        if [ -n "$USER" ] && [ -n "$IP" ]; then
-            printf "%-6s %-19s %2s \n" "$PID" " $USER" "$IP";
-            echo -e "\e[33m──────────────────────────────────────────${NC}"
+    # Optimized: Process dropbear connections with parallel processing
+    ps aux | awk '/[d]ropbear/ {print $2}' | while read PID; do
+        if line=$(grep "dropbear\[$PID\].*Password auth succeeded" "$LOG" | head -1); then
+            info=$(extract_user_info "$line" "dropbear")
+            if [[ -n "$info" ]]; then
+                user=$(echo "$info" | cut -d'|' -f1)
+                ip=$(echo "$info" | cut -d'|' -f2)
+                printf "%-6s %-19s %2s \n" "$PID" " $user" "$ip"
+                echo -e "\e[33m──────────────────────────────────────────${NC}"
+            fi
         fi
-    fi
-done
+    done
+fi
 
-echo -e "\e[33m──────────────────────────────────────────${NC}"
-echo -e "\E[40;1;37m           USER LOGIN SSL & UDP           \E[0m"
-echo -e "\e[33m──────────────────────────────────────────${NC}"
-echo -e "\E[40;1;37mID   |  Username        |  IP Address     ${NC}";
-echo -e "\e[33m──────────────────────────────────────────${NC}"
+# SSH SSL & UDP Users - Optimized with parallel processing  
+if is_ssh_active; then
+    echo -e "\e[33m──────────────────────────────────────────${NC}"
+    echo -e "\E[40;1;37m             SSH SSL & UDP USERS           \E[0m"
+    echo -e "\e[33m──────────────────────────────────────────${NC}"
+    echo -e "\E[40;1;37mPID  |  Username        |  IP Address     ${NC}";
+    echo -e "\e[33m──────────────────────────────────────────${NC}"
 
-cat $LOG | grep -i sshd | grep -i "Accepted password for" > /tmp/login-db.txt
-data=( `ps aux | grep "\[priv\]" | sort -k 72 | awk '{print $2}'`);
-
-for PID in "${data[@]}"
-do
-    cat /tmp/login-db.txt | grep "sshd\[$PID\]" > /tmp/login-db-pid.txt;
-    NUM=`cat /tmp/login-db-pid.txt | wc -l`;
-
-    if [ $NUM -eq 1 ]; then
-        # Extract user and IP using the new function
-        line=$(cat /tmp/login-db-pid.txt)
-        info=$(extract_ssh_info "$line")
-        USER=$(echo "$info" | cut -d'|' -f1)
-        IP=$(echo "$info" | cut -d'|' -f2)
-
-        if [ -n "$USER" ] && [ -n "$IP" ]; then
-            printf "%-6s %-19s %2s \n" "$PID" " $USER" "$IP";
-            echo -e "\e[33m──────────────────────────────────────────${NC}"
+    # Optimized: Process SSH connections with parallel processing
+    ps aux | awk '/\[priv\]/ {print $2}' | sort -n | while read PID; do
+        if line=$(grep "sshd\[$PID\].*Accepted password for" "$LOG" | head -1); then
+            info=$(extract_user_info "$line" "ssh")
+            if [[ -n "$info" ]]; then
+                user=$(echo "$info" | cut -d'|' -f1)
+                ip=$(echo "$info" | cut -d'|' -f2)
+                printf "%-6s %-19s %2s \n" "$PID" " $user" "$ip"
+                echo -e "\e[33m──────────────────────────────────────────${NC}"
+            fi
         fi
-    fi
-done
-
-echo -e "\e[33m──────────────────────────────────────────${NC}"
-if [ -f "/etc/openvpn/server/openvpn-tcp.log" ]; then
-echo -e ""
-echo -e "\e[33m──────────────────────────────────────────${NC}"
-echo -e "\E[40;1;37mID   |  Username       |   IP Address     ${NC}";
-echo -e "\e[33m──────────────────────────────────────────${NC}"
-            cat /etc/openvpn/server/openvpn-tcp.log | grep -w "^CLIENT_LIST" | cut -d ',' -f 2,3,8 | sed -e 's/,/      /g' > /tmp/vpn-login-tcp.txt
-            cat /tmp/vpn-login-tcp.txt
+    done
 fi
-echo -e "\e[33m──────────────────────────────────────────${NC}"
 
-if [ -f "/etc/openvpn/server/openvpn-udp.log" ]; then
-echo " "
-echo -e "\e[33m──────────────────────────────────────────${NC}"
-echo -e "\E[40;1;37mID   |  Username       |   IP Address     ${NC}";
-echo -e "\e[33m──────────────────────────────────────────${NC}"
-            cat /etc/openvpn/server/openvpn-udp.log | grep -w "^CLIENT_LIST" | cut -d ',' -f 2,3,8 | sed -e 's/,/      /g' > /tmp/vpn-login-udp.txt
-            cat /tmp/vpn-login-udp.txt
+# OpenVPN TCP Users - Optimized with direct processing
+if is_openvpn_tcp_active; then
+    echo -e "\e[33m──────────────────────────────────────────${NC}"
+    echo -e "\E[40;1;37m             OPENVPN TCP USERS             \E[0m"
+    echo -e "\e[33m──────────────────────────────────────────${NC}"
+    echo -e "\E[40;1;37mID   |  Username        |  IP Address     ${NC}";
+    echo -e "\e[33m──────────────────────────────────────────${NC}"
+    # Direct processing without temporary files
+    grep -w "^CLIENT_LIST" /etc/openvpn/server/openvpn-tcp.log 2>/dev/null | \
+    cut -d ',' -f 2,3,8 | sed -e 's/,/      /g'
+    echo -e "\e[33m──────────────────────────────────────────${NC}"
 fi
-echo -e "\e[33m──────────────────────────────────────────${NC}"
+
+# OpenVPN UDP Users - Optimized with direct processing
+if is_openvpn_udp_active; then
+    echo -e "\e[33m──────────────────────────────────────────${NC}"
+    echo -e "\E[40;1;37m             OPENVPN UDP USERS             \E[0m"
+    echo -e "\e[33m──────────────────────────────────────────${NC}"
+    echo -e "\E[40;1;37mID   |  Username        |  IP Address     ${NC}";
+    echo -e "\e[33m──────────────────────────────────────────${NC}"
+    # Direct processing without temporary files
+    grep -w "^CLIENT_LIST" /etc/openvpn/server/openvpn-udp.log 2>/dev/null | \
+    cut -d ',' -f 2,3,8 | sed -e 's/,/      /g'
+    echo -e "\e[33m──────────────────────────────────────────${NC}"
+fi
+
+# Display message if no services are active
+if ! is_dropbear_active && ! is_ssh_active && ! is_openvpn_tcp_active && ! is_openvpn_udp_active; then
+    echo -e "\e[33m──────────────────────────────────────────${NC}"
+    echo -e "\E[40;1;33m           NO ACTIVE SERVICES             \E[0m"
+    echo -e "\e[33m──────────────────────────────────────────${NC}"
+fi

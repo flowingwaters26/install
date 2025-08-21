@@ -44,35 +44,35 @@ fi
 
 read -p "Limit Ip  : " iplimit
 read -p "Max Quota : " Quota
-read -p "Expired   : " masaaktif
+read -p "Expired   : " expiry_days
 
 generateRandomString() {
-    # Generate string acak menggunakan /dev/urandom
+    # Generate random string using /dev/urandom
     string=$(LC_CTYPE=C tr -dc 'a-zA-Z0-9' < /dev/urandom | fold -w "$1" | head -n 1)
-    # Return string acak
+    # Return random string
     echo "xrayvmess$string"
 }
 
-# Panggil fungsi generateRandomString dengan panjang 15 karakter
+# Call generateRandomString function with 15 character length
 uuid=$(generateRandomString 15)
 
-tgl=$(date -d "$masaaktif days" +"%d")
-bln=$(date -d "$masaaktif days" +"%b")
-bln1=$(date -d "$masaaktif days" +"%m")
-thn=$(date -d "$masaaktif days" +"%Y")
+tgl=$(date -d "$expiry_days days" +"%d")
+bln=$(date -d "$expiry_days days" +"%b")
+bln1=$(date -d "$expiry_days days" +"%m")
+thn=$(date -d "$expiry_days days" +"%Y")
 expe="$tgl $bln, $thn"
 exp_formatted="$thn-$bln1-$tgl"
 tgl2=$(date +"%d")
 bln2=$(date +"%b")
 thn2=$(date +"%Y")
 tnggl="$tgl2 $bln2, $thn2"
-exp=`date -d "$masaaktif days" +"%Y-%m-%d"`
+exp=`date -d "$expiry_days days" +"%Y-%m-%d"`
 sed -i '/#vmess$/a\### '"$user $exp"'\
 },{"id": "'""$uuid""'","alterId": '"0"',"email": "'""$user""'"' /etc/xray/config.json
 sed -i '/#vmessgrpc$/a\### '"$user $exp"'\
 },{"id": "'""$uuid""'","alterId": '"0"',"email": "'""$user""'"' /etc/xray/config.json
 
-asu=`cat<<EOF
+tls_config=`cat<<EOF
       {
       "v": "2",
       "ps": "${user}",
@@ -87,7 +87,7 @@ asu=`cat<<EOF
       "tls": "tls"
 }
 EOF`
-ask=`cat<<EOF
+ntls_config=`cat<<EOF
       {
       "v": "2",
       "ps": "${user}",
@@ -102,7 +102,7 @@ ask=`cat<<EOF
       "tls": "none"
 }
 EOF`
-grpc=`cat<<EOF
+grpc_config=`cat<<EOF
       {
       "v": "2",
       "ps": "${user}",
@@ -121,9 +121,9 @@ EOF`
 vmess_base641=$( base64 -w 0 <<< $vmess_json1)
 vmess_base642=$( base64 -w 0 <<< $vmess_json2)
 vmess_base643=$( base64 -w 0 <<< $vmess_json3)
-vmesslink1="vmess://$(echo $asu | base64 -w 0)"
-vmesslink2="vmess://$(echo $ask | base64 -w 0)"
-vmesslink3="vmess://$(echo $grpc | base64 -w 0)"
+vmesslink1="vmess://$(echo $tls_config | base64 -w 0)"
+vmesslink2="vmess://$(echo $ntls_config | base64 -w 0)"
+vmesslink3="vmess://$(echo $grpc_config | base64 -w 0)"
 
 if [ ! -e /etc/vmess ]; then
   mkdir -p /etc/vmess

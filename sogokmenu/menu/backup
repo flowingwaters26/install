@@ -101,7 +101,7 @@ Backup Vps Server Success
 ────────────────────────────────
 Subdomain vps : $domain
 IP Server vps : $IP
-Date ToBackup : $date
+Date Backup   : $date
 ────────────────────────────────
 Link Backup $link
 ────────────────────────────────
@@ -121,7 +121,7 @@ TEXT="
 <code>☉────────────────────────☉</code>
 <code>Subdomain vps :</code> <code>$domain</code>
 <code>IP Server vps :</code> <code>$IP</code>
-<code>Date ToBackup :</code> <code>$date</code>
+<code>Date Backup   :</code> <code>$date</code>
 <code>☉────────────────────────☉</code>
 Link Backup $link
 <code>☉────────────────────────☉</code>"
@@ -134,7 +134,7 @@ echo -e "\E[40;1;37m         BACKUP VPS SERVER SUCCESS        \E[0m"
 echo -e "\e[33m──────────────────────────────────────────\033[0m"
 echo -e "Subdomain vps : $domain"
 echo -e "IP Server vps : $IP"
-echo -e "Date ToBackup : $date"
+echo -e "Date Backup   : $date"
 echo -e "\e[33m──────────────────────────────────────────\033[0m"
 echo -e "Link Backup $link"
 echo -e "\e[33m──────────────────────────────────────────\033[0m"

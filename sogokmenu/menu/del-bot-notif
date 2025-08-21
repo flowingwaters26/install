@@ -13,7 +13,7 @@ if [[ ${NUMBER_OF_CLIENTS} == '0' ]]; then
     echo "Bot Not Found!"
     echo ""
     echo -e "\e[33m──────────────────────────────────────────\033[0m"
-    read -n 1 -s -r -p "Press [ Enter ] To Back On Menu"
+    read -n 1 -s -r -p "Press [ Enter ] To Go back "
     menu
 fi
 
@@ -30,5 +30,5 @@ echo "Input Bot Token : $KEY"
 echo "Input admin ID  : $CHATID"
 echo -e "\e[33m──────────────────────────────────────────\033[0m"
 echo ""
-read -n 1 -s -r -p "Press [ Enter ] To Back On Menu"
-menu 
+read -n 1 -s -r -p "Press [ Enter ] To go back"
+menu    
