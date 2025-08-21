@@ -1,0 +1,140 @@
+#!/bin/bash
+# Optimized SSH Account Deletion Tool
+# https://t.me/bio_hazard89
+
+# Color definitions
+red='\e[1;31m'
+RED='\033[0;31m'
+NC='\033[0m'
+GREEN='\033[0;32m'
+ORANGE='\033[0;33m'
+BLUE='\033[0;34m'
+PURPLE='\033[0;35m'
+CYAN='\033[0;36m'
+LIGHT='\033[0;37m'
+
+# Performance optimization: get current timestamp once
+CURRENT_TIMESTAMP=$(date +%s)
+
+clear
+echo -e "\e[33m──────────────────────────────────────────────${NC}"
+echo -e "\E[40;1;37m           LIST MEMBER SSH & OPENVPN          \E[0m"
+echo -e "\e[33m──────────────────────────────────────────────${NC}" 
+echo -e "\E[40;1;37mNO.   USERNAME         EXP DATE         STATUS\E[0m"
+echo -e "\e[33m──────────────────────────────────────────────${NC}"
+
+# Initialize counter and account storage
+counter=1
+declare -a user_accounts
+declare -A user_exp_dates
+
+# Optimized user listing with single pass processing
+while IFS=: read -r username password uid gid gecos homedir shell; do
+    # Only process user accounts (UID >= 1000)
+    if [[ $uid -ge 1000 ]]; then
+        # Get account expiration info efficiently
+        exp_info=$(chage -l "$username" 2>/dev/null | grep "Account expires" | cut -d: -f2 | xargs)
+        
+        # Skip if no expiration info available
+        [[ "$exp_info" == "never" || -z "$exp_info" ]] && continue
+        
+        # Convert expiration date efficiently - single conversion
+        if exp_timestamp=$(date -d "$exp_info" +%s 2>/dev/null); then
+            exp_formatted=$(date -d "$exp_info" +%Y-%m-%d 2>/dev/null)
+            
+            # Fast expiration check using timestamps (more efficient than string comparison)
+            days_remaining=$(( (exp_timestamp - CURRENT_TIMESTAMP) / 86400 ))
+            
+            # Get account status efficiently
+            account_status=$(passwd -S "$username" 2>/dev/null | awk '{print $2}')
+            
+            # Determine status and color efficiently
+            if [[ "$account_status" = "L" ]]; then
+                status_text="LOCKED"
+                color="${PURPLE}"  # Purple for locked accounts
+            elif (( days_remaining < 0 )); then
+                status_text="EXPIRED"
+                color="${RED}"     # Red for expired
+            elif (( days_remaining == 0 )); then
+                status_text="EXPIRES TODAY"
+                color="${ORANGE}"  # Orange for expiring today
+            else
+                status_text="ACTIVE"
+                color="${GREEN}"   # Green for active accounts
+            fi
+            
+            # Display formatted account info with consistent color handling
+            printf "${color}%-5s %-15s %-15s %-15s${NC}\n" \
+                "$counter" "$username" "$exp_formatted" "$status_text"
+            
+            # Store account info for later reference
+            user_accounts+=("$username")
+            user_exp_dates["$username"]="$exp_formatted"
+            
+            ((counter++))
+        fi
+    fi
+done < /etc/passwd
+
+echo -e "\e[33m──────────────────────────────────────────────${NC}"
+echo -e "\E[40;1;37m         ENTER SSH ACCOUNT NUMBER             \E[0m"
+echo -e "\e[33m──────────────────────────────────────────────${NC}"
+read -p "Input Number of Account: " account_number
+
+# Validate input
+if [[ -z "$account_number" ]]; then
+    echo -e "${red}No input detected!${NC}"
+    exit 1
+fi
+
+# Validate account number is numeric
+if ! [[ "$account_number" =~ ^[0-9]+$ ]]; then
+    echo -e "${red}Please enter a valid number!${NC}"
+    exit 1
+fi
+
+# Get the username based on the selected number
+selected_username="${user_accounts[$((account_number - 1))]}"
+
+# Check if the selected account exists
+if [[ -z "$selected_username" ]]; then
+    echo -e "${red}Account number not found!${NC}"
+    exit 1
+fi
+
+# Get stored expiration date
+selected_exp_date="${user_exp_dates[$selected_username]}"
+
+# Optimized account deletion with error handling
+echo -e "${ORANGE}Deleting account: $selected_username${NC}"
+
+# Delete user account
+if userdel "$selected_username" >/dev/null 2>&1; then
+    deletion_status="Success"
+else
+    deletion_status="Warning: User deletion may have failed"
+fi
+
+# Clean up SSH database entries
+sed -i "/^### $selected_username/d" /etc/ssh/.ssh.db 2>/dev/null
+
+# Remove web files efficiently
+rm -f "/var/www/html/ssh-Trial-${selected_username}.txt" \
+      "/var/www/html/ssh-${selected_username}.txt" 2>/dev/null
+
+# Restart services efficiently
+systemctl restart ssh sshd >/dev/null 2>&1
+
+clear
+echo -e "\e[33m──────────────────────────────────────────────${NC}"
+echo -e "\E[40;1;37m    DELETE SSH OPENVPN ACCOUNT SUCCESS        \E[0m"
+echo -e "\e[33m──────────────────────────────────────────────${NC}"
+echo -e ""
+echo -e "${NC}Username Info   : $selected_username"
+echo -e "${NC}Expired Account : $selected_exp_date"
+echo -e "${NC}Process Delete  : $deletion_status"
+echo -e ""
+echo -e "\e[33m──────────────────────────────────────────────${NC}"
+echo -e ""
+read -n 1 -s -r -p "Press any key to back to menu"
+m-sshws

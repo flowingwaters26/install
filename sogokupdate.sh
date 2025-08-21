@@ -35,6 +35,7 @@ res1() {
     wget -q https://raw.githubusercontent.com/flowingwaters26/install/main/sogokmenu/menu.zip
     unzip menu.zip
     chmod +x menu/*
+    rm /usr/local/sbin/*
     mv menu/* /usr/local/sbin
     rm -rf menu
     rm -rf menu.zip
