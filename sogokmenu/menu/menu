@@ -109,7 +109,7 @@ speedtest
 ;;
 14)
 clear
-wget -q https://raw.githubusercontent.com/masterxone/pusaka/main/autoscript/sogokupdate.sh && chmod +x sogokupdate.sh && ./sogokupdate.sh
+wget -q https://raw.githubusercontent.com/flowingwaters26/install/main/sogokupdate.sh && chmod +x sogokupdate.sh && ./sogokupdate.sh
 ;;
 0 | 00)
 exit
