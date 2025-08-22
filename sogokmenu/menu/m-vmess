@@ -87,5 +87,5 @@ case $menu in
     ;;
 0) clear ; menu ; exit ;;
 x) exit ;;
-*) echo " Pilihan anda tidak tersedia! " ; sleep 1 ; m-vmess ;;
+*) echo " Your choice is not available! " ; sleep 1 ; m-vmess ;;
 esac

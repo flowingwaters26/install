@@ -26,9 +26,9 @@ trial_users=()
 
 for user in "${data[@]}"; do
     if [[ "$user" == *Trial* ]]; then
-        trial_users+=("$user") # Masukkan pengguna Trial ke dalam array khusus
+        trial_users+=("$user") # Add Trial user to special array
     else
-        regular_users+=("$user") # Masukkan pengguna biasa ke array reguler
+        regular_users+=("$user") # Add regular user to regular array
     fi
 done
 

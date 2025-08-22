@@ -13,7 +13,7 @@ GREEN='\033[0;32m'
 ORANGE='\033[0;33m'
 YELL='\033[0;33m'
 
-# Getting
+# Getting configuration
 CHATID=$(grep -E "^#bot# " "/etc/bot/.bot.db" | cut -d ' ' -f 3)
 KEY=$(grep -E "^#bot# " "/etc/bot/.bot.db" | cut -d ' ' -f 2)
 TIME="10"
@@ -47,7 +47,7 @@ read -n 1 -s -r -p "Press any key to back"
 m-sshws
 fi
 
-# limitip
+# IP limit setup
 if [[ $iplimit -gt 0 ]]; then
 mkdir -p /etc/kyt/limit/ssh/ip
 echo -e "$iplimit" > /etc/kyt/limit/ssh/ip/$Login

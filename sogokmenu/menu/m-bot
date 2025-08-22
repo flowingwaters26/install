@@ -53,11 +53,11 @@ case $menu in
 2 | 02) clear ; checking_sc ; bot ;;
 3 | 03) clear ; checking_sc ; 
     echo -e "Notification ! : "
-    echo -e "Sebelum Menggunakan BOT Backup"
+    echo -e "Before Using BOT Backup"
     echo -e "Harap Setup Dulu ID & Bot Token Kamu !"
     sleep 3
     mbot-backup ;;
 0) clear ; menu ; exit ;;
 x) exit ;;
-*) echo "Pilihan anda tidak tersedia! " ; sleep 1 ; m-bot ;;
+*) echo "Your choice is not available! " ; sleep 1 ; m-bot ;;
 esac

@@ -40,7 +40,7 @@ echo -e "\e[33m─────────────────────�
 echo -e "\E[40;1;37mNO    USERNAME         EXP DATE     STATUS\E[0m"
 echo -e "\e[33m──────────────────────────────────────────\033[0m"
 
-# Mengambil dan mengurutkan berdasarkan username (alphabetically)
+# Fetch and sort accounts
 declare -A user_map
 declare -A user_status
 declare -a accounts
@@ -60,18 +60,18 @@ while read -r line; do
     user_status["$user"]="$status"
 done < <(grep -E "^### " "/etc/xray/config.json" | sort | uniq)
 
-# Menampilkan username, expiration date, dan status secara terurut
+# Display username, expiration date, and status in sorted order
 for user in $(echo "${!user_map[@]}" | tr ' ' '\n' | sort); do
     exp="${user_map[$user]}"
     status="${user_status[$user]}"
     
-    # Menghitung selisih hari antara tanggal sekarang dan tanggal exp
-    exp_timestamp=$(date -d "$exp" +%s)  # Tanggal exp dalam format timestamp
-    current_timestamp=$(date -d "$current_date" +%s)  # Tanggal sekarang dalam format timestamp
-    diff_days=$(( (exp_timestamp - current_timestamp) / 86400 ))  # Menghitung selisih dalam hari
+        # Calculate difference in days between current date and exp date
+    exp_timestamp=$(date -d "$exp" +%s)  # Exp date in timestamp format
+    current_timestamp=$(date -d "$current_date" +%s)  # Current date in timestamp format
+    diff_days=$(( (exp_timestamp - current_timestamp) / 86400 ))  # Calculate difference in days
     
     if [[ $diff_days -le 1 ]]; then
-        # Jika exp kurang dari atau sama dengan 1 hari, warnai merah
+        # If exp is less than or equal to 1 day, color it red
         printf "${RED}%-5s %-15s %-10s %-10s${NC}\n" "$counter" "$user" "$exp" " $status"
     else
         # Tampilkan dengan warna normal
@@ -82,7 +82,7 @@ for user in $(echo "${!user_map[@]}" | tr ' ' '\n' | sort); do
 done
 
 echo -e "\e[33m──────────────────────────────────────────\033[0m"
-echo -e "\E[40;1;37m     MASUKKAN NOMOR ACCOUNT VMESS         \E[0m"
+echo -e "\E[40;1;37m     ENTER VMESS ACCOUNT NUMBER           \E[0m"
 echo -e "\e[33m──────────────────────────────────────────\033[0m"
 read -p "Input Number of Account: " number
 

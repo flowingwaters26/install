@@ -31,14 +31,9 @@ echo -e "${BIYellow}────────────────────
 read -p "Set Minutes : " pup
 echo -e "${BIYellow}───────────────────────────────────${NC}"
 
-generateRandomString() {
-    # Generate random string using /dev/urandom
-    string=$(LC_CTYPE=C tr -dc 'a-zA-Z0-9' < /dev/urandom | fold -w "$1" | head -n 1)
-    # Return random string
-    echo "xraytrial$string"
-}
+# Generate random trial password
 
-# Call generateRandomString function with 15 character length
+# Generate UUID for trial account
 uuid=$(generateRandomString 15)
 masaaktif=1
 Quota=1000

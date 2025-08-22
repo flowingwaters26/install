@@ -40,24 +40,24 @@ echo -e "\e[33m─────────────────────�
 echo -e "\E[40;1;37mUSERNAME          EXP DATE          STATUS\E[0m"
 echo -e "\e[33m──────────────────────────────────────────\033[0m"
 
-# Mengambil dan mengurutkan berdasarkan username (alphabetically)
+# Fetch and sort by username (alphabetically)
 declare -A user_map
 declare -A user_status
 
-current_date=$(date +%Y-%m-%d)  # Mendapatkan tanggal saat ini
+current_date=$(date +%Y-%m-%d)  # Get current date
 
 while read -r line; do
     user=$(echo "$line" | cut -d ' ' -f 2)
     exp=$(echo "$line" | cut -d ' ' -f 3)
     
-    # Cek status dengan mencari kunci "LOCKED" dalam konfigurasi
+    # Check status by searching for "LOCKED" key in configuration
     status=$(grep -w "^#& $user" -A 1 "/etc/xray/config.json" | sort | uniq | grep -o "LOCKED" || echo "UNLOCKED")
     
     user_map["$user"]="$exp"
     user_status["$user"]="$status"
 done < <(grep -E "^#& " "/etc/xray/config.json" | sort | uniq)
 
-# Menampilkan username, expiration date, dan status secara terurut
+# Display username, expiration date, and status in sorted order
 for user in $(echo "${!user_map[@]}" | tr ' ' '\n' | sort); do
     exp="${user_map[$user]}"
     status="${user_status[$user]}"
@@ -68,10 +68,10 @@ for user in $(echo "${!user_map[@]}" | tr ' ' '\n' | sort); do
     diff_days=$(( (exp_timestamp - current_timestamp) / 86400 ))  # Menghitung selisih dalam hari
     
     if [[ $diff_days -le 1 ]]; then
-        # Jika exp kurang dari atau sama dengan 1 hari, warnai merah
+        # If exp is less than or equal to 1 day, color it red
         printf "${RED}%-15s %-10s %-10s${NC}\n" "$user" " $exp" "      $status"
     else
-        # Tampilkan dengan warna normal
+        # Display with normal color
         printf "%-15s %-10s %-10s\n" "$user" " $exp" "      $status"
     fi
 done

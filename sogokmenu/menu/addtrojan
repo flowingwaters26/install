@@ -48,14 +48,7 @@ read -p "Limit Ip  : " iplimit
 read -p "Max Quota : " Quota
 read -p "Expireed  : " expiry_days
 
-generateRandomString() {
-    # Generate random string using /dev/urandom
-    string=$(LC_CTYPE=C tr -dc 'a-zA-Z0-9' < /dev/urandom | fold -w "$1" | head -n 1)
-    # Return random string
-    echo "xraytrojan$string"
-}
-
-# Call generateRandomString function with 15 character length
+# Generate random password
 uuid=$(generateRandomString 15)
 
 day=$(date -d "$expiry_days days" +"%d")
