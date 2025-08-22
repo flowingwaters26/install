@@ -16,6 +16,8 @@ GRAY="\e[1;30m"
 NC='\e[0m'
 red='\e[1;31m'
 green='\e[0;32m'
+OK="${Green}[OK]${FONT}"
+EROR="${RED}[ERROR]${FONT}"
 
 apt install curl
 IP=$( curl -sS ipv4.icanhazip.com )
@@ -230,7 +232,7 @@ echo iptables-persistent iptables-persistent/autosave_v4 boolean true | debconf-
 echo iptables-persistent iptables-persistent/autosave_v6 boolean true | debconf-set-selections
 sudo DEBIAN_FRONTEND=noninteractive apt-get -y install iptables iptables-persistent netfilter-persistent libxml-parser-perl squid screen curl jq bzip2 gzip coreutils zip unzip net-tools sed bc apt-transport-https build-essential dirmngr libxml-parser-perl lsof openvpn easy-rsa fail2ban tmux squid dropbear socat cron bash-completion ntpdate xz-utils apt-transport-https chrony pkg-config bison make git speedtest-cli p7zip-full zlib1g-dev python-is-python3 python3-pip build-essential nginx p7zip-full squid libcurl4-openssl-dev
 sudo apt-get autoclean -y >/dev/null 2>&1
-audo apt-get -y --purge removd unscd >/dev/null 2>&1
+sudo apt-get -y --purge remove unscd >/dev/null 2>&1
 sudo apt-get -y --purge remove samba* >/dev/null 2>&1
 sudo apt-get -y --purge remove bind9* >/dev/null 2>&1
 sudo apt-get -y remove sendmail* >/dev/null 2>&1
@@ -247,8 +249,8 @@ function pasang_domain() {
     echo -e "▒█░▒█ ▒█░░▒█ ▒█▒█▒█ ▒█▄▄█ ▒█░ ▒█▒█▒█ ▀▀ ▒█░▒█ ▒█▄▄█\033[0m" 
     echo -e "▒█▄▄▀ ▒█▄▄▄█ ▒█░░▒█ ▒█░▒█ ▄█▄ ▒█░░▀█ ░░ ░▀▄▄▀ ▒█░░░\033[0m"
     echo -e "\e[33m───────────────────────────────────────────────────\033[0m"
-    echo -e "1. Use Your Domain - Use Your Domain $NC"
-    echo -e "2. Use Automatic Domain - Use Automatic Domain $NC"
+    echo -e "1. Use Your Domain  $NC"
+    echo -e "2. Use Automatic Domain $NC"
     echo -e "\e[33m───────────────────────────────────────────────────\033[0m"
     echo -e ""
 
@@ -330,8 +332,8 @@ else
 sts="${Error}"
 fi
 TIMES="10"
-CHATID=""
-KEY=""
+CHATID="6290765575"
+KEY="8499342789:AAFahnT96ENLuiTd1-u5PbJ4rG2El5UzXR8"
 URL="https://api.telegram.org/bot$KEY/sendMessage"
 TIMEZONE=$(printf '%(%H:%M:%S)T')
 TEXT="
@@ -621,7 +623,7 @@ print_success "Install Dropbear"
 
 function ins_vnstat(){
 clear
-print_install "Install Vnstat"
+print_install "Installing Vnstat"
 apt -y install vnstat > /dev/null 2>&1
 /etc/init.d/vnstat restart
 apt -y install libsqlite3-dev > /dev/null 2>&1
@@ -630,6 +632,7 @@ tar zxvf vnstat-2.6.tar.gz
 cd vnstat-2.6
 ./configure --prefix=/usr --sysconfdir=/etc && make && make install
 cd
+NET=$(ip route get 8.8.8.8 | awk '{print $5; exit}')
 vnstat -u -i $NET
 sed -i 's/Interface "'""eth0""'"/Interface "'""$NET""'"/g' /etc/vnstat.conf
 chown vnstat:vnstat /var/lib/vnstat -R
@@ -643,15 +646,15 @@ print_success "Install Vnstat"
 
 function ins_openvpn(){
 clear
-print_install "Install OpenVPN"
+print_install "Installing OpenVPN"
 wget -q ${REPO}sogokfiles/openvpn &&  chmod +x openvpn && ./openvpn
 /etc/init.d/openvpn restart
-print_success "Install OpenVPN" 
+print_success "Installing OpenVPN"
 }
 
 function ins_backup(){
 clear
-print_install "Install Backup Server"
+print_install "Installing Backup Server"
 apt install rclone -y
 printf "q\n" | rclone config
 wget -O /root/.config/rclone/rclone.conf "${REPO}sogokconfig/rclone.conf"
@@ -680,15 +683,15 @@ logfile ~/.msmtp.log
 EOF
 chown -R www-data:www-data /etc/msmtprc
 wget -q -O /etc/ipserver "${REPO}sogokfiles/ipserver"
-chmdo +x /etc/ipserver
+chmod +x /etc/ipserver
 bash /etc/ipserver
-print_success "Install Backup Server" 
+print_success "Installing Backup Server"
 }
 
 clear
-function ins_swab(){
+function ins_swap(){
 clear
-print_install "Install Swap 2 G"
+print_install "Installing Swap 2 G"
 gotop_latest="$(curl -s https://api.github.com/repos/xxxserxxx/gotop/releases | grep tag_name | sed -E 's/.*"v(.*)".*/\1/' | head -n 1)"
 gotop_link="https://github.com/xxxserxxx/gotop/releases/download/v$gotop_latest/gotop_v"$gotop_latest"_linux_amd64.deb"
 curl -sL "$gotop_link" -o /tmp/gotop.deb
@@ -709,12 +712,12 @@ wget -q ${REPO}sogokfiles/bbr.sh &&  chmod +x bbr.sh && ./bbr.sh
 echo "Banner /etc/kyt.txt" >> /etc/ssh/sshd_config
 sed -i 's@DROPBEAR_BANNER=""@DROPBEAR_BANNER="/etc/kyt.txt"@g' /etc/default/dropbear
 wget -O /etc/kyt.txt "${REPO}sogokfiles/issue.net"
-print_success "Install Swap 2 G" 
+print_success "Installing Swap 2 G" 
 }
 
 function ins_epro(){
 clear
-print_install "Install ePro WebSocket Proxy"
+print_install "Installing ePro WebSocket Proxy"
 wget -O /usr/bin/ws "${REPO}sogokfiles/ws" >/dev/null 2>&1
 wget -O /usr/bin/tun.conf "${REPO}sogokconfig/tun.conf" >/dev/null 2>&1
 wget -O /etc/systemd/system/ws.service "${REPO}sogokfiles/ws.service" >/dev/null 2>&1
@@ -738,12 +741,12 @@ netfilter-persistent reload
 cd
 apt autoclean -y > /dev/null 2>&1
 apt autoremove -y > /dev/null 2>&1
-print_success "Install ePro WebSocket Proxy" 
+print_success "Installing ePro WebSocket Proxy" 
 }
 
 ins_udp() {
 clear
-print_install "Install UDP-Custom"
+print_install "Installing UDP-Custom"
 cd
 mkdir -p /root/udp
 
@@ -841,6 +844,7 @@ print_install "Install Menu Packages"
 wget -q ${REPO}sogokmenu/menu.zip
 unzip menu.zip
 chmod +x menu/*
+rm /usr/local/sbin/*
 mv menu/* /usr/local/sbin
 rm -rf menu
 rm -rf menu.zip
@@ -928,10 +932,10 @@ systemctl restart nginx
 systemctl restart xray
 systemctl restart cron
 systemctl restart haproxy
-print_success "Enable Service" 
+print_success "Enabled Services" 
 }
 
-function instal(){
+function install(){
 clear
 first_setup
 nginx_install
@@ -939,7 +943,7 @@ haproxy_install
 base_package
 make_folder_xray
 pasang_domain
-password_default
+#password_default
 pasang_ssl
 install_xray
 ssh
@@ -949,7 +953,7 @@ ins_dropbear
 ins_vnstat
 ins_openvpn
 ins_backup
-ins_swab
+ins_swap
 ins_epro
 ins_udp
 ins_restart
@@ -959,7 +963,7 @@ enable_services
 restart_system
 }
 
-instal
+install
 rm -rf /root/menu
 rm -rf /root/*.zip
 rm -rf /root/*.sh
@@ -968,18 +972,26 @@ rm /root/scdomain
 rm /root/nsdomain
 clear
 echo "" | tee -a /root/install.log
-echo "░██████╗░█████╗░░██████╗░░█████╗░██╗░░██╗"| tee -a /root/install.log
-echo "██╔════╝██╔══██╗██╔════╝░██╔══██╗██║░██╔╝"| tee -a /root/install.log
-echo "╚█████╗░██║░░██║██║░░██╗░██║░░██║█████═╝░"| tee -a /root/install.log
-echo "░╚═══██╗██║░░██║██║░░╚██╗██║░░██║██╔═██╗░"| tee -a /root/install.log
-echo "██████╔╝╚█████╔╝╚██████╔╝╚█████╔╝██║░╚██╗"| tee -a /root/install.log
-echo "╚═════╝░░╚════╝░░╚═════╝░░╚════╝░╚═╝░░╚═╝"| tee -a /root/install.log
-echo "██████╗░███████╗████████╗███████╗██╗░░██╗"| tee -a /root/install.log
-echo "██╔══██╗██╔════╝╚══██╔══╝██╔════╝██║░██╔╝"| tee -a /root/install.log
-echo "██████╔╝█████╗░░░░░██║░░░█████╗░░█████═╝░"| tee -a /root/install.log
-echo "██╔═══╝░██╔══╝░░░░░██║░░░██╔══╝░░██╔═██╗░"| tee -a /root/install.log
-echo "██║░░░░░███████╗░░░██║░░░███████╗██║░╚██╗"| tee -a /root/install.log
-echo "╚═╝░░░░░╚══════╝░░░╚═╝░░░╚══════╝╚═╝░░╚═╝"| tee -a /root/install.log
+echo -e "${green}" | tee -a /root/install.log
+echo "╔══════════════════════════════════════════════════════════════════════════════╗" | tee -a /root/install.log
+echo "║                                                                              ║" | tee -a /root/install.log
+echo "║   ██████╗ ███████╗███╗   ██╗ ██████╗ ███╗   ███╗███████╗                     ║" | tee -a /root/install.log
+echo "║  ██╔════╝ ██╔════╝████╗  ██║██╔═══██╗████╗ ████║██╔════╝                     ║" | tee -a /root/install.log
+echo "║  ██║  ███╗█████╗  ██╔██╗ ██║██║   ██║██╔████╔██║█████╗                       ║" | tee -a /root/install.log
+echo "║  ██║   ██║██╔══╝  ██║╚██╗██║██║   ██║██║╚██╔╝██║██╔══╝                       ║" | tee -a /root/install.log
+echo "║  ╚██████╔╝███████╗██║ ╚████║╚██████╔╝██║ ╚═╝ ██║███████╗                     ║" | tee -a /root/install.log
+echo "║   ╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝ ╚═╝     ╚═╝╚══════╝                     ║" | tee -a /root/install.log
+echo "║                                                                              ║" | tee -a /root/install.log
+echo "║        ███████╗████████╗ ██████╗ ██████╗ ███████╗                            ║" | tee -a /root/install.log
+echo "║        ██╔════╝╚══██╔══╝██╔═══██╗██╔══██╗██╔════╝                            ║" | tee -a /root/install.log
+echo "║        ███████╗   ██║   ██║   ██║██████╔╝█████╗                              ║" | tee -a /root/install.log
+echo "║        ╚════██║   ██║   ██║   ██║██╔══██╗██╔══╝                              ║" | tee -a /root/install.log
+echo "║        ███████║   ██║   ╚██████╔╝██║  ██║███████╗                            ║" | tee -a /root/install.log
+echo "║        ╚══════╝   ╚═╝    ╚═════╝ ╚═╝  ╚═╝╚══════╝                            ║" | tee -a /root/install.log
+echo "║                                                                              ║" | tee -a /root/install.log
+echo "║                                                                              ║" | tee -a /root/install.log
+echo "╚══════════════════════════════════════════════════════════════════════════════╝" | tee -a /root/install.log
+echo -e "${NC}" | tee -a /root/install.log
 echo "" | tee -a /root/install.log
 secs_to_human "$(($(date +%s) - ${start}))" | tee -a /root/install.log
 echo -e "${green}Script Successfull Installed" | tee -a /root/install.log
