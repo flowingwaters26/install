@@ -28,17 +28,17 @@ user=Trial-VM`</dev/urandom tr -dc 0-9 | head -c3`
 echo -e "${BIYellow}───────────────────────────────────${NC}"
 echo -e "${BGWHITE}      CREATE TRIAL V2RAY VLESS     ${NC}"
 echo -e "${BIYellow}───────────────────────────────────${NC}"
-read -p "Set Menit : " pup
+read -p "Set Minutes : " pup
 echo -e "${BIYellow}───────────────────────────────────${NC}"
 
 generateRandomString() {
-    # Generate string acak menggunakan /dev/urandom
+    # Generate random string using /dev/urandom
     string=$(LC_CTYPE=C tr -dc 'a-zA-Z0-9' < /dev/urandom | fold -w "$1" | head -n 1)
-    # Return string acak
+    # Return random string
     echo "xraytrial$string"
 }
 
-# Panggil fungsi generateRandomString dengan panjang 15 karakter
+# Call generateRandomString function with 15 character length
 uuid=$(generateRandomString 15)
 masaaktif=1
 Quota=1000
@@ -111,7 +111,7 @@ nTls  : $vlesslink2
 ----------------------
 Grpc  : $vlesslink3
 ----------------------
-Exp   : $pup Menit
+Exp   : $pup Minutes
 ----------------------
 END
 
@@ -137,7 +137,7 @@ Status Trial VLESS Success
 ──────────────────────
 <code>✧ Doc   :</code> https://${domain}:81/vless-$user.txt
 ──────────────────────
-<code>✧ Exp   :</code> <code>$pup Menit</code>
+<code>✧ Exp   :</code> <code>$pup Minutes</code>
 ──────────────────────  "
 
 curl -s --max-time $TIME -d "chat_id=$CHATID&disable_web_page_preview=1&text=$TEXT&parse_mode=html" $URL >/dev/null
@@ -169,7 +169,7 @@ echo -e "${NC}✧ Grpc  : $vlesslink3${NC}"
 echo -e "${BIYellow}───────────────────────────────────${NC}"
 echo -e "${NC}✧ Doc   : https://${domain}:81/vless-$user.txt${NC}"
 echo -e "${BIYellow}───────────────────────────────────${NC}"
-echo -e "${NC}✧ Exp   : $pup Menit${NC}"
+echo -e "${NC}✧ Exp   : $pup Minutes${NC}"
 echo -e "${BIYellow}───────────────────────────────────${NC}"
 echo -e ""
 read -n 1 -s -r -p "Press any key to back"

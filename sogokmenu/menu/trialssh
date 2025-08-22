@@ -27,7 +27,7 @@ clear
 echo -e "${BIYellow}───────────────────────────────────${NC}"
 echo -e "${BGWHITE}     CREATE TRIAL SSH & OPENVPN    ${NC}"
 echo -e "${BIYellow}───────────────────────────────────${NC}"
-read -p "Set Menit : " pup
+read -p "Set Minutes : " pup
 echo -e "${BIYellow}───────────────────────────────────${NC}"
 hari="1"
 Pass=1
@@ -80,7 +80,7 @@ WS    : $domain:80@$Login:$Pass
 ----------------------
 UDP   : $domain:1-65535@$Login:$Pass
 ----------------------
-Exp   : $pup Menit
+Exp   : $pup Minutes
 ----------------------
 END
 
@@ -108,7 +108,7 @@ Status Trial SSHWS Success
 ──────────────────────
 <code>✧ Doc   :</code> https://${domain}:81/ssh-$Login.txt
 ──────────────────────
-<code>✧ Exp   :</code> <code>$pup Menit</code>
+<code>✧ Exp   :</code> <code>$pup Minutes</code>
 ────────────────────── "
 
 curl -s --max-time $TIME -d "chat_id=$CHATID&disable_web_page_preview=1&text=$TEXT&parse_mode=html" $URL >/dev/null
@@ -137,7 +137,7 @@ echo -e "${NC}✧ UDP   : $domain:1-65535@$Login:$Pass${NC}"
 echo -e "${BIYellow}───────────────────────────────────${NC}"
 echo -e "${NC}✧ Doc   : https://${domain}:81/ssh-$Login.txt${NC}"
 echo -e "${BIYellow}───────────────────────────────────${NC}"
-echo -e "${NC}✧ Exp   : $pup Menit"
+echo -e "${NC}✧ Exp   : $pup Minutes"
 echo -e "${BIYellow}───────────────────────────────────${NC}"
 echo -e ""
 read -n 1 -s -r -p "Press any key to back"
