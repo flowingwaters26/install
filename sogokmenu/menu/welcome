@@ -32,14 +32,18 @@ SERONLINE=$(uptime -p | cut -d " " -f 2-10)
 
 # IZIN AOUTOSCRIPT
 izinsc="https://raw.githubusercontent.com/flowingwaters26/install/main/sogokregister"
-# USERNAME
-rm -f /usr/bin/user
-username=$(curl ${izinsc} | grep $IPVPS | awk '{print $2}')
-echo "$username" >/usr/bin/user
-# validity
-rm -f /usr/bin/e
-valid=$(curl ${izinsc} | grep $IPVPS | awk '{print $3}')
-echo "$valid" >/usr/bin/e
+
+# Fetch data once
+reg_data=$(curl -s "$izinsc" | grep "$IPVPS")
+
+# Parse from fetched data
+username=$(echo "$reg_data" | awk '{print $2}')
+valid=$(echo "$reg_data" | awk '{print $3}')
+
+# Save parsed data
+echo "$username" > /usr/bin/user
+echo "$valid" > /usr/bin/e
+
 # DETAIL ORDER
 username=$(cat /usr/bin/user)
 exp=$(cat /usr/bin/e)
@@ -70,8 +74,7 @@ fi
 Info="${BGREEN}ONLINE${NC}"
 Error="${RED}EXPIRED${NC}"
 today=`date -d "0 days" +"%Y-%m-%d"`
-Exp1=$(curl ${izinsc} | grep $IPVPS | awk '{print $3}')
-if [[ $today < $Exp1 ]]; then
+if [[ $today < $valid ]]; then
 sts="${Info}"
 else
 sts="${Error}"
@@ -99,8 +102,8 @@ haproxy_service=$(systemctl status haproxy | grep Active | awk '{print $3}' | cu
 xray_service=$(systemctl status xray | grep Active | awk '{print $3}' | cut -d "(" -f2 | cut -d ")" -f1)
 nginx_service=$(systemctl status nginx | grep Active | awk '{print $3}' | cut -d "(" -f2 | cut -d ")" -f1)
 
-# STATUS SERVICE  SSH 
-if [[ $ssh_service == "running" ]]; then 
+# STATUS SERVICE  SSH
+if [[ $ssh_service == "running" ]]; then
    status_ssh="${BGREEN}ON${NC}"
 else
    status_ssh="${RED}OFF${NC}"
@@ -115,28 +118,28 @@ else
 fi
 
 # STATUS SERVICE HAPROXY
-if [[ $haproxy_service == "running" ]]; then 
+if [[ $haproxy_service == "running" ]]; then
    status_haproxy="${BGREEN}ON${NC}"
 else
    status_haproxy="${RED}OFF${NC}"
 fi
 
 # STATUS SERVICE XRAY
-if [[ $xray_service == "running" ]]; then 
+if [[ $xray_service == "running" ]]; then
    status_xray="${BGREEN}ON${NC}"
 else
    status_xray="${RED}OFF${NC}"
 fi
 
 # STATUS SERVICE NGINX
-if [[ $nginx_service == "running" ]]; then 
+if [[ $nginx_service == "running" ]]; then
    status_nginx="${BGREEN}ON${NC}"
 else
    status_nginx="${RED}OFF${NC}"
 fi
 
 # STATUS SERVICE Dropbear
-if [[ $dropbear_service == "running" ]]; then 
+if [[ $dropbear_service == "running" ]]; then
    status_dropbear="${BGREEN}GOOD${NC}"
 else
    status_dropbear="${RED}CRAZY${NC}"
@@ -169,10 +172,10 @@ echo -e "${BICyan}┌───────────────────�
 echo -e "${BICyan}│${BIYellow} PROXY :${NC} $status_haproxy │ ${BIYellow} NGINX :${NC} $status_nginx ${NC} │ ${BIYellow}SSHWS :${NC} $status_ws_epro ${NC}│  $status_dropbear  \e[96;1m│ ${NC}"
 echo -e "${BICyan}└─────────────────────────────────────────────────┘${NC}"
 echo -e "${BICyan}       ┌───────────────────────────────────┐${NC}"
-echo -e "${white}               SSHWS OVPN    :    $ssh1 ${NC}" 
-echo -e "${white}               XRAY VMESS    :    $vma  ${NC}" 
-echo -e "${white}               XRAY VLESS    :    $vla  ${NC}" 
-echo -e "${white}               XRAY TROJN    :    $trb  ${NC}"    
+echo -e "${white}               SSHWS OVPN    :    $ssh1 ${NC}"
+echo -e "${white}               XRAY VMESS    :    $vma  ${NC}"
+echo -e "${white}               XRAY VLESS    :    $vla  ${NC}"
+echo -e "${white}               XRAY TROJN    :    $trb  ${NC}"
 echo -e "${BICyan}       └───────────────────────────────────┘${NC}"
 echo -e "${BICyan}   ┌───────────────────────────────────────────┐${NC}"
 echo -e "${BICyan}   │   ${NC}${CYAN}VERSION SC : ${BIYellow} 2.4 ${CYAN}[${white}LAST UPDATE${CYAN}]${NC}"
@@ -183,6 +186,6 @@ echo -e "${BICyan}┌───────────────────�
 echo -e "${BICyan}│${NC}${CYAN} TODAY${BGREEN} $ttoday${NC} ${CYAN}YESTERDAY${BGREEN} $tyest${NC} ${CYAN}MONTH${BGREEN} $tmon${NC}"
 echo -e "${BICyan}└─────────────────────────────────────────────────┘${NC}"
 echo -e "${BICyan} ————————————————————————————————————————————————— ${NC}"
-echo -e "${BICyan}        ${BIYellow} access all features\033[92;1m menu ${white}command ${NC}" 
+echo -e "${BICyan}        ${BIYellow} access all features\033[92;1m menu ${white}command ${NC}"
 echo -e "${BICyan} ————————————————————————————————————————————————— ${NC}"
 echo -e ""
