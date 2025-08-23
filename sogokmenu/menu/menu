@@ -2,123 +2,199 @@
 # https://t.me/bio_hazard89
 
 BICyan='\033[1;96m'       # Cyan
+CYAN='\033[1;96m'       # Cyan
 BIWhite='\033[1;97m'      # White
 UWhite='\033[4;37m'       # White
 BIYellow='\033[1;93m'     # Yellow
 NC='\033[0m'
-
+white='\033[0;37m'
 RED="\033[31m"
+COLOR1="\033[32m"
+WH='\033[1;37m'
 NC='\e[0m'
 GREEN='\033[0;32m'
 ORANGE='\033[0;33m'
 YELL='\033[0;33m'
-
-ipsaya=$(curl -sS ipv4.icanhazip.com)
-data_server=$(curl -v --insecure --silent https://google.com/ 2>&1 | grep Date | sed -e 's/< Date: //')
-date_list=$(date +"%Y-%m-%d" -d "$data_server")
-data_ip="https://raw.githubusercontent.com/flowingwaters26/install/main/sogokregister"
-checking_sc() {
-  useexp=$(wget -qO- $data_ip | grep $ipsaya | awk '{print $3}')
-  if [[ $date_list < $useexp ]]; then
-    echo -ne
-  else
-    clear
-    echo -e "${BIYellow}────────────────────────────────────────────${NC}"
-    echo -e "${BGWHITE}          404 NOT FOUND AUTOSCRIPT          ${NC}"
-    echo -e "${BIYellow}────────────────────────────────────────────${NC}"
-    echo -e ""
-    echo -e "${BIYellow}           ${RED}! PERMISSION DENIED !${NC}"
-    echo -e "${BIYellow}  Your VPS${NC} $ipsaya ${BIYellow}has been banned${NC}"
-    echo -e "${BIYellow}     Buy access permissions for scripts${NC}"
-    echo -e "${BIYellow}       Wa admin : wa.me/+254797264947${NC}"
-    echo -e "${BIYellow}     Tele admin : t.me/bio_hazard89${NC}"
-    echo -e "${BIYellow}────────────────────────────────────────────${NC}"
-    exit 0
-  fi
-}
-checking_sc
+BGREEN='\033[92;1m'
 
 clear
-echo -e "${BICyan} ┌─────────────────────────────────────────────────────┐${NC}"
-echo -e "${BICyan} │${NC} \033[44;1;97;1m                      GENOME STORE                 ${NC} ${BICyan}│${NC}"
-echo -e "${BICyan} └─────────────────────────────────────────────────────┘${NC}"
-echo -e "${BICyan} ┌─────────────────────────────────────────────────────┐${NC}"
-echo -e "${BICyan} │  ${BICyan}[${BIWhite}01${BICyan}] SSHWS   ${BICyan}[${BIYellow}Menu${BICyan}]${NC}"  "${BICyan}  [${BIWhite}08${BICyan}] SET DOMAIN      ${BICyan}[${BIYellow}Menu${BICyan}]${NC}" "${BICyan} │${NC}"
-echo -e "${BICyan} │  ${BICyan}[${BIWhite}02${BICyan}] VMESS   ${BICyan}[${BIYellow}Menu${BICyan}]${NC}"  "${BICyan}  [${BIWhite}09${BICyan}] RUNNING         ${BICyan}[${BIYellow}Menu${BICyan}]${NC}" "${BICyan} │${NC}"
-echo -e "${BICyan} │  ${BICyan}[${BIWhite}03${BICyan}] VLESS   ${BICyan}[${BIYellow}Menu${BICyan}]${NC}"  "${BICyan}  [${BIWhite}10${BICyan}] DROP 2018/2019  ${BICyan}[${BIYellow}Menu${BICyan}]${NC}" "${BICyan} │${NC}"
-echo -e "${BICyan} │  ${BICyan}[${BIWhite}04${BICyan}] TROJAN  ${BICyan}[${BIYellow}Menu${BICyan}]${NC}"  "${BICyan}  [${BIWhite}11${BICyan}] INSTALL BOT     ${BICyan}[${BIYellow}Menu${BICyan}]${NC}" "${BICyan} │${NC}"
-echo -e "${BICyan} │  ${BICyan}[${BIWhite}05${BICyan}] SETING  ${BICyan}[${BIYellow}Menu${BICyan}]${NC}"  "${BICyan}  [${BIWhite}12${BICyan}] BANDWITH        ${BICyan}[${BIYellow}Menu${BICyan}]${NC}" "${BICyan} │${NC}"
-echo -e "${BICyan} │  ${BICyan}[${BIWhite}06${BICyan}] TRIALL  ${BICyan}[${BIYellow}Menu${BICyan}]${NC}"  "${BICyan}  [${BIWhite}13${BICyan}] SPEEDTEST       ${BICyan}[${BIYellow}Menu${BICyan}]${NC}" "${BICyan} │${NC}"
-echo -e "${BICyan} │  ${BICyan}[${BIWhite}07${BICyan}] BACKUP  ${BICyan}[${BIYellow}Menu${BICyan}]${NC}"  "${BICyan}  [${BIWhite}14${BICyan}] UPDATE SCRIPT   ${BICyan}[${BIYellow}Menu${BICyan}]${NC}" "${BICyan} │${NC}"
-echo -e "${BICyan} └─────────────────────────────────────────────────────┘${NC}"
+
+# Read all system files at once to minimize I/O
+read -r CITY < /etc/xray/city
+read -r IPVPS < /etc/xray/ipvps  
+read -r domain < /etc/xray/domain
+read -r ISP < /etc/xray/isp
+
+# Get memory info in one call
+read -r _ RAM USAGERAM _ < <(free -m | awk 'NR==2 {print $1, $2, $3, $4}')
+MEMOFREE=$(awk "BEGIN {printf \"%.1f%%\", $USAGERAM*100/$RAM}")
+
+# Get system info efficiently
+MODEL=$(awk -F= '/PRETTY_NAME/ {gsub(/"/,"",$2); print $2}' /etc/os-release)
+CORE=$(nproc)
+SERONLINE=$(uptime -p | cut -d " " -f 2-10)
+
+# Get CPU usage more efficiently
+cpu_usage_total=$(awk '{u=$2+$4; t=$2+$4+$5; if (NR==1){u1=u; t1=t;} else printf "%.1f", (u-u1) * 100 / (t-t1); }' <(grep 'cpu ' /proc/stat; sleep 0.1; grep 'cpu ' /proc/stat))
+
+# IZIN AOUTOSCRIPT - Cache license check
+license_cache="/tmp/license_cache"
+if [[ ! -f "$license_cache" ]] || [[ $(($(date +%s) - $(stat -c %Y "$license_cache" 2>/dev/null || echo 0))) -gt 300 ]]; then
+    izinsc="https://raw.githubusercontent.com/flowingwaters26/install/main/sogokregister"
+    reg_data=$(curl -s --connect-timeout 5 "$izinsc" | grep "$IPVPS")
+    echo "$reg_data" > "$license_cache"
+else
+    reg_data=$(cat "$license_cache")
+fi
+
+# Parse license data efficiently
+IFS=' ' read -r _ username valid _ <<< "$reg_data"
+[[ -n "$username" ]] && echo "$username" > /usr/bin/user
+[[ -n "$valid" ]] && echo "$valid" > /usr/bin/e
+
+exp="$valid"
+certifacate=$(( ( $(date -d "$valid" +%s) - $(date +%s) ) / 86400 ))
+
+# Get vnstat data efficiently - Fixed version
+if command -v vnstat >/dev/null 2>&1; then
+    # Get today and yesterday data
+    vn_today=$(vnstat -i eth0 2>/dev/null)
+    ttoday=$(echo "$vn_today" | awk '/today/ {print $8, substr($9,1,1)}' 2>/dev/null || echo "0.00 G")
+    tyest=$(echo "$vn_today" | awk '/yesterday/ {print $8, substr($9,1,1)}' 2>/dev/null || echo "0.00 G")
+    
+    # Get month data
+    vn_month=$(vnstat -i eth0 -m 2>/dev/null)
+    month_key=$(date +"%b '%y")
+    tmon=$(echo "$vn_month" | awk -v key="$month_key" '$0 ~ key {print $9, substr($10,1,1)}' 2>/dev/null)
+    
+    # Fallback for month data
+    if [[ -z "$tmon" ]]; then
+        tmon=$(vnstat -i eth0 -m 2>/dev/null | grep "$(date +"%Y-%m")" | awk -F '|' '{print $3}' | awk '{print $1, $2}' 2>/dev/null || echo "0.00 G")
+    fi
+else
+    ttoday="N/A"
+    tyest="N/A" 
+    tmon="N/A"
+fi
+
+# Status check - simplified
+today=$(date +"%Y-%m-%d")
+if [[ "$today" < "$valid" ]]; then
+    sts="${BGREEN}ONLINE${NC}"
+else
+    sts="${RED}EXPIRED${NC}"
+fi
+
+# Service status checks - Fixed and simplified
+ssh_service=$(/etc/init.d/ssh status 2>/dev/null | grep Active | awk '{print $3}' | cut -d "(" -f2 | cut -d ")" -f1)
+dropbear_service=$(/etc/init.d/dropbear status 2>/dev/null | grep Active | awk '{print $3}' | cut -d "(" -f2 | cut -d ")" -f1)
+haproxy_service=$(systemctl status haproxy 2>/dev/null | grep Active | awk '{print $3}' | cut -d "(" -f2 | cut -d ")" -f1)
+xray_service=$(systemctl status xray 2>/dev/null | grep Active | awk '{print $3}' | cut -d "(" -f2 | cut -d ")" -f1)
+nginx_service=$(systemctl status nginx 2>/dev/null | grep Active | awk '{print $3}' | cut -d "(" -f2 | cut -d ")" -f1)
+
+# Set status variables
+if [[ $ssh_service == "running" ]]; then 
+   status_ssh="${BGREEN}ON${NC}"
+else
+   status_ssh="${RED}OFF${NC}"
+fi
+
+if [[ $haproxy_service == "running" ]]; then 
+   status_haproxy="${BGREEN}ON${NC}"
+else
+   status_haproxy="${RED}OFF${NC}"
+fi
+
+if [[ $xray_service == "running" ]]; then 
+   status_xray="${BGREEN}ON${NC}"
+else
+   status_xray="${RED}OFF${NC}"
+fi
+
+if [[ $nginx_service == "running" ]]; then 
+   status_nginx="${BGREEN}ON${NC}"
+else
+   status_nginx="${RED}OFF${NC}"
+fi
+
+if [[ $dropbear_service == "running" ]]; then 
+   status_dropbear="${BGREEN}ON${NC}"
+else
+   status_dropbear="${RED}CRAZY${NC}"
+fi
+
+# Account counts - Fixed grep pattern
+if [[ -f "/etc/xray/config.json" ]]; then
+    vlx=$(grep -c -E "^#& " "/etc/xray/config.json" 2>/dev/null || echo "0")
+    vla=$((vlx/2))
+    vmc=$(grep -c -E "^### " "/etc/xray/config.json" 2>/dev/null || echo "0") 
+    vma=$((vmc/2))
+    trx=$(grep -c -E "^#! " "/etc/xray/config.json" 2>/dev/null || echo "0")
+    trb=$((trx/2))
+    ssx=$(grep -c -E "^#ss# " "/etc/xray/config.json" 2>/dev/null || echo "0")
+    ssa=$((ssx/2))
+else
+    vla=0; vma=0; trb=0; ssa=0
+fi
+
+# SSH account count
+ssh1=$(awk -F: '$3 >= 1000 && $1 != "nobody" {count++} END {print count+0}' /etc/passwd)
+
+clear
+
+
+
+
+echo -e " $COLOR1╭═════════════════════════════════════════════════════════╮${NC}"
+echo -e " $COLOR1│${NC} ${COLBG1}                   ${WH}⛩ GEMONE STORE                      ${NC} $COLOR1│ $NC"
+echo -e " $COLOR1╰═════════════════════════════════════════════════════════╯${NC}"
+echo -e " $COLOR1╭═════════════════════════════════════════════════════════╮${NC}"
+echo -e " $COLOR1│$NC${WH} ❈ OS            ${COLOR1}: ${WH}$MODEL${NC}"
+echo -e " $COLOR1│$NC${WH} ❈ ISP           ${COLOR1}: ${WH}$ISP${NC}"
+echo -e " $COLOR1│$NC${WH} ❈ RAM           ${COLOR1}: ${WH}$USAGERAM / $RAM MB${NC}"
+echo -e " $COLOR1│$NC${WH} ❈ IP VPS        ${COLOR1}: ${WH}$IPVPS${NC}"
+echo -e " $COLOR1│$NC${WH} ❈ CPU Load      ${COLOR1}: ${WH}$cpu_usage_total%${NC}"
+echo -e " $COLOR1│$NC${WH} ❈ DOMAIN        ${COLOR1}: ${WH}$domain${NC}"
+echo -e " $COLOR1╰═════════════════════════════════════════════════════════╯${NC}"
+echo -e "    $COLOR1╭═════════════════ • ${NC}${WH}STATUS SERVER${NC}${COLOR1} • ═══════════════╮${NC}"
+echo -e "     ${WH} SSH WS : ${status_ssh} ${WH} XRAY : ${status_xray} ${WH} NGINX : ${status_nginx} ${WH} DROPBEAR : ${status_dropbear}$NC"
+echo -e "    $COLOR1╰═══════════════════════════════════════════════════╯${NC}"
+echo -e "         $COLOR1╭══════════════════════════════════════════╮${NC}"
+echo -e "                  $COLOR1$NC${WH}    LIST ACCOUNT PREMIUM ${NC}"
+echo -e "         $COLOR1      ═════════════════════════════════ ${NC}"
+echo -e "                 $COLOR1$NC${WH}  SSH/OPVPN   =  ${COLOR1}$ssh1 ${NC}${WH} ACCOUNTS ${NC}"
+echo -e "                 $COLOR1$NC${WH}  VMESS/WS    =  ${COLOR1}$vma ${NC}${WH} ACCOUNTS ${NC}"
+echo -e "                 $COLOR1$NC${WH}  VLESS/WS    =  ${COLOR1}$vla ${NC}${WH} ACCOUNTS ${NC}"
+echo -e "                 $COLOR1$NC${WH}  TROJAN/GRPC =  ${COLOR1}$trb ${NC}${WH} ACCOUNTS${NC}"
+echo -e "         $COLOR1╰══════════════════════════════════════════╯${NC}"
+echo -e " $COLOR1╭════════════════════════════════════════════════════════╮${NC}"
+echo -e " $COLOR1│$NC ${WH}[${NC}${COLOR1}01${WH}]${NC} ${COLOR1}• ${WH}SSH-WS    ${WH}[${NC}${COLOR1}Menu${WH}]   ${NC} $COLOR1│${NC}  ${WH}[${NC}${COLOR1}06${WH}]${NC} ${COLOR1}• ${WH}UPDATE     ${WH}[${NC}${COLOR1}Menu${WH}] ${NC}$COLOR1│${NC}"
+echo -e " $COLOR1│$NC ${WH}[${NC}${COLOR1}02${WH}]${NC} ${COLOR1}• ${WH}VMESS     ${WH}[${NC}${COLOR1}Menu${WH}]   ${NC} $COLOR1│${NC}  ${WH}[${NC}${COLOR1}07${WH}]${NC} ${COLOR1}• ${WH}SETTINGS   ${WH}[${NC}${COLOR1}Menu${WH}] ${NC}$COLOR1│${NC}"    
+echo -e " $COLOR1│$NC ${WH}[${NC}${COLOR1}03${WH}]${NC} ${COLOR1}• ${WH}VLESS     ${WH}[${NC}${COLOR1}Menu${WH}]   ${NC} $COLOR1│${NC}  ${WH}[${NC}${COLOR1}08${WH}]${NC} ${COLOR1}• ${WH}BACKUP     ${WH}[${NC}${COLOR1}Menu${WH}] ${NC}$COLOR1│${NC}"   
+echo -e " $COLOR1│$NC ${WH}[${NC}${COLOR1}04${WH}]${NC} ${COLOR1}• ${WH}TROJAN    ${WH}[${NC}${COLOR1}Menu${WH}]   ${NC} $COLOR1│${NC}  ${WH}[${NC}${COLOR1}09${WH}]${NC} ${COLOR1}• ${WH}RUNNING    ${WH}[${NC}${COLOR1}Menu${WH}] ${NC}$COLOR1│${NC}" 
+echo -e " $COLOR1│$NC ${WH}[${NC}${COLOR1}05${WH}]${NC} ${COLOR1}• ${WH}BOT       ${WH}[${NC}${COLOR1}Menu${WH}]   ${NC} $COLOR1│${NC}  ${WH}[${NC}${COLOR1}10${WH}]${NC} ${COLOR1}• ${WH}SPEEDTEST  ${WH}[${NC}${COLOR1}Menu${WH}] ${NC}$COLOR1│${NC}" 
+echo -e " $COLOR1╰════════════════════════════════════════════════════════╯${NC}"
+echo -e " $COLOR1╭═════════════════════════════════════════════════════════╮${NC}"
+echo -e " $COLOR1│$NC  ${WH}Total    ${NC}$COLOR1│${NC}     ${WH}Today       ${WH}Yesterday       ${WH}Month         ${NC}"
+echo -e " $COLOR1│$NC ${WH}Bantwidth ${NC}$COLOR1│${NC}     ${WH}$ttoday     ${WH}$tyest      ${WH}$tmon$COLOR1${NC}"
+echo -e " $COLOR1╰═════════════════════════════════════════════════════════╯${NC}"
+echo -e " $COLOR1╭═════════════════════════════════════════════════════════╮${NC}"
+echo -e " $COLOR1│$NC ${WH} ❈ Client ${NC} : ${WH}$username [$sts]${NC}"
+echo -e " $COLOR1│$NC ${WH} ❈ Expiry ${NC} : ${WH}$exp $certifacate DAYS ${NC}$COLOR1"
+echo -e " $COLOR1╰═════════════════════════════════════════════════════════╯${NC}"
 echo -e ""
-read -p " Select From Options ➤ " opt
-
+echo -ne " ${WH}Select menu ${COLOR1}: ${WH}"; read opt
 case $opt in
-1 | 01)
-clear
-m-sshws
-;;
-2 | 02)
-clear
-m-vmess
-;;
-3 | 03)
-clear
-m-vless
-;;
-4 | 04)
-clear
-m-trojan
-;;
-5 | 05)
-clear
-m-system;
-;;
-6 | 06)
-clear
-m-trial
-;;
-7 | 07)
-clear
-menu-backup
-;;
-8 | 08)
-clear
-addhost
-;;
-9 | 09)
-clear
-run
-;;
-10)
-clear
-insdrop
-;;
-11)
-clear
-m-bot
-;;
-12)
-clear
-bw
-;;
-13)
-clear
-speedtest
-;;
-14)
-clear
-wget -q https://raw.githubusercontent.com/flowingwaters26/install/main/sogokupdate.sh && chmod +x sogokupdate.sh && ./sogokupdate.sh
-;;
-0 | 00)
-exit
-;;
-x)
-menu
-;;
-*)
-clear
-menu
-;;
+01 | 1) clear ; m-sshws ;;
+02 | 2) clear ; m-vmess ;;
+03 | 3) clear ; m-vless ;;
+04 | 4) clear ; m-trojan ;;
+05 | 5) clear ; m-bot ;;
+06 | 6) clear ; wget -q https://raw.githubusercontent.com/flowingwaters26/install/main/sogokupdate.sh && chmod +x sogokupdate.sh && ./sogokupdate.sh ;;
+07 | 7) clear ; m-system  ;;
+08 | 8) clear ; menu-backup ;;
+09 | 9) clear ; run ;;
+10 | 10) clear ; speedtest ;;
+00 | 0) clear ; menu ;;
+*) clear ; menu ;;
 esac
