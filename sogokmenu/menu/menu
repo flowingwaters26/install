@@ -176,7 +176,7 @@ echo -e " $COLOR1│$NC ${WH}[${NC}${COLOR1}05${WH}]${NC} ${COLOR1}• ${WH}BOT 
 echo -e " $COLOR1╰════════════════════════════════════════════════════════╯${NC}"
 echo -e " $COLOR1╭═════════════════════════════════════════════════════════╮${NC}"
 echo -e " $COLOR1│$NC  ${WH}Total    ${NC}$COLOR1│${NC}     ${WH}Today       ${WH}Yesterday       ${WH}Month         ${NC}"
-echo -e " $COLOR1│$NC ${WH}Bantwidth ${NC}$COLOR1│${NC}     ${WH}$ttoday     ${WH}$tyest      ${WH}$tmon$COLOR1${NC}"
+echo -e " $COLOR1│$NC ${WH}Bantwidth ${NC}$COLOR1│${NC}    ${WH}$ttoday       ${WH}$tyest      ${WH}$tmon$COLOR1${NC}"
 echo -e " $COLOR1╰═════════════════════════════════════════════════════════╯${NC}"
 echo -e " $COLOR1╭═════════════════════════════════════════════════════════╮${NC}"
 echo -e " $COLOR1│$NC ${WH} ❈ Client ${NC} : ${WH}$username [$sts]${NC}"

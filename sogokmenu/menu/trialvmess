@@ -36,7 +36,7 @@ generateRandomString() {
     # Generate random string using /dev/urandom
     string=$(LC_CTYPE=C tr -dc 'a-zA-Z0-9' < /dev/urandom | fold -w "$1" | head -n 1)
     # Return random string
-    echo "xraytrojan$string"
+    echo "xrayvmess$string"
 }
 # Generate UUID for trial account
 uuid=$(generateRandomString 15)
